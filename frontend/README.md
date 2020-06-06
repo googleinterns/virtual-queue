@@ -14,15 +14,14 @@ Important: If a person is not logged in and he tries to access any other page ap
 How to run the app?
 
 -Install Vuejs: 
-$npm install -g @vue/cli
+      $npm install -g @vue/cli
 -Download the project from github and open the project inside the terminal:
-$npm run serve
+      $npm run serve
 -Login to firebase, click add project, enter your project name and click create project.
 -Click on “Add firebase to your web app icon”. An api key would be generated in the project settings in the side bar. 
--Click on Config. Copy the code snippet having the apikey inside the main.js file. 
-
-Open the project in another tab of terminal:
-$npm install firebase --save
+-Click on Config. Copy the code snippet having the apikey inside and paste it in the main.js file. 
+-Open the project in another tab of terminal:
+      $npm install firebase --save
 
 
 Steps to include Firebase Authentication:
@@ -38,7 +37,11 @@ Vue.config.productionTip = false
 let app = '';
 // Your web app's Firebase configuration
 const firebaseConfig = {
- //API key
+  apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+  authDomain: process.env.VUE_APP_FIREBASE_PROJECT_ID + '.firebaseapp.com',
+  databaseURL: "https://" + process.env.VUE_APP_FIREBASE_PROJECT_ID + '.firebaseio.com',
+  projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VUE_APP_FIREBASE_PROJECT_ID + '.appspot.com'
 };
 // Initialize Firebase
  
@@ -62,7 +65,6 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import SignUp from '../views/SignUp.vue'
-import Queue from ‘../views/Queue.vue’
 Vue.use(VueRouter)
  
 const routes = [
@@ -70,14 +72,6 @@ const routes = [
    path: '/home',
    name: 'Home',
    component: Home,
-   meta: {
-     requiresAuth: true
-   }
- },
- {
-   path: '/queue',
-   name: 'Queue',
-   component: Queue,
    meta: {
      requiresAuth: true
    }
@@ -105,9 +99,7 @@ const routes = [
 const router = new VueRouter({
  routes
 })
- 
- 
- 
+
 router.beforeEach((to, from, next) => {
  const currentUser = firebase.auth().currentUser;
  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
@@ -116,7 +108,7 @@ router.beforeEach((to, from, next) => {
 })
 export default router
 
-Whenever a page needs authentication add:
+-Whenever a page needs authentication add:
 
   meta: {
      requiresAuth: true
