@@ -1,6 +1,6 @@
 ## SignUp/Login page using Vuejs and Firebase Authentication
 
-#### Functions that you will get when you add Firebase Authentication:
+### Functions that you will get when you add Firebase Authentication:
 
 * The first page that will come up will be the login page.
 * You have to enter your email and password and click “connect” and you will be directed to the home page, otherwise if you don’t have an account then you would need to sign up, for that click on “create one”.
@@ -11,7 +11,7 @@
 **Important: Everything starts from the Home page.
 Important: If a person is not logged in and he tries to access any other page apart from the ones mentioned in routes array in index.js, then he will be directed to the Login page automatically.**
 
-#### How to run the app?
+### How to run the app?
 
 * Install Vuejs: 
 
@@ -29,7 +29,7 @@ Important: If a person is not logged in and he tries to access any other page ap
       $npm install firebase --save
 
 
-#### Steps to include Firebase Authentication:
+### Steps to include Firebase Authentication:
 
 1. Changes to be made in main.js file:
 
