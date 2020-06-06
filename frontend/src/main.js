@@ -7,14 +7,11 @@ Vue.config.productionTip = false
 let app = '';
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyD0Fz2aUBmqzt9CHNanezSwLFkNPT-05rg",
-  authDomain: "authentication-e11db.firebaseapp.com",
-  databaseURL: "https://authentication-e11db.firebaseio.com",
-  projectId: "authentication-e11db",
-  storageBucket: "authentication-e11db.appspot.com",
-  messagingSenderId: "279797035543",
-  appId: "1:279797035543:web:bbb0da1e44c300d94ee252",
-  measurementId: "G-4Q5TLZMTVT"
+  apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+  authDomain: process.env.VUE_APP_FIREBASE_PROJECT_ID + '.firebaseapp.com',
+  databaseURL: "https://" + process.env.VUE_APP_FIREBASE_PROJECT_ID + '.firebaseio.com',
+  projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VUE_APP_FIREBASE_PROJECT_ID + '.appspot.com',
 };
 // Initialize Firebase
 
