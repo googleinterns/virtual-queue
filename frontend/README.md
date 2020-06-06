@@ -8,7 +8,7 @@
 * Now your account is created and you will be directed to the home page.
 * If a person is not logged in and tries to access home page he will be directed to the login page.
 
-**Important: Everything starts from the Home page.
+**Important: Everything starts from the Home page.          
 Important: If a person is not logged in and he tries to access any other page apart from the ones mentioned in routes array in index.js, then he will be directed to the Login page automatically.**
 
 ### How to run the app?
