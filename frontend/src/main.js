@@ -2,6 +2,7 @@ import Vue from 'vue'
 import firebase from 'firebase'
 import App from './App.vue'
 import router from './router'
+import * as VueGoogleMaps from "vue2-google-maps";
 
 Vue.config.productionTip = false
 let app = '';
@@ -29,3 +30,9 @@ firebase.auth().onAuthStateChanged(() => {
   }
 });
 
+Vue.use(VueGoogleMaps, {
+  load: {
+    key: "AIzaSyCu4bZPx3unoBtAr8YUzVfiBmw6oqZBk0g",
+    libraries: "places" // necessary for places input
+  }
+});
