@@ -13,14 +13,19 @@ Important: If a person is not logged in and he tries to access any other page ap
 
 #### How to run the app?
 
--Install Vuejs: 
+* Install Vuejs: 
+
       $npm install -g @vue/cli
--Download the project from github and open the project inside the terminal:
+      
+* Download the project from github and open the project inside the terminal:
+
       $npm run serve
--Login to firebase, click add project, enter your project name and click create project.
--Click on “Add firebase to your web app icon”. An api key would be generated in the project settings in the side bar. 
--Click on Config. Copy the code snippet having the apikey inside and paste it in the main.js file. 
--Open the project in another tab of terminal:
+      
+* Login to firebase, click add project, enter your project name and click create project.
+* Click on “Add firebase to your web app icon”. An api key would be generated in the project settings in the side bar. 
+* Click on Config. Copy the code snippet having the apikey inside and paste it in the main.js file. 
+* Open the project in another tab of terminal:
+
       $npm install firebase --save
 
 
@@ -29,33 +34,52 @@ Important: If a person is not logged in and he tries to access any other page ap
 1. Changes to be made in main.js file:
 
 import Vue from 'vue'
+
 import firebase from 'firebase'
+
 import App from './App.vue'
+
 import router from './router'
  
 Vue.config.productionTip = false
+
 let app = '';
+
 // Your web app's Firebase configuration
+
 const firebaseConfig = {
+
   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+  
   authDomain: process.env.VUE_APP_FIREBASE_PROJECT_ID + '.firebaseapp.com',
+  
   databaseURL: "https://" + process.env.VUE_APP_FIREBASE_PROJECT_ID + '.firebaseio.com',
+  
   projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
+  
   storageBucket: process.env.VUE_APP_FIREBASE_PROJECT_ID + '.appspot.com'
+  
 };
+
 // Initialize Firebase
  
 firebase.initializeApp(firebaseConfig);
  
 firebase.auth().onAuthStateChanged(() => {
- if (!app) {
-   app = new Vue({
-     router,
-     render: h => h(App)
-   }).$mount('#app');
- }
-});
 
+ if (!app) {
+ 
+   app = new Vue({
+   
+     router,
+     
+     render: h => h(App)
+     
+   }).$mount('#app');
+   
+ }
+ 
+});
 
 2. Changes to be made in index.js file:
 
@@ -117,7 +141,7 @@ export default router
 3. The pages having the logout option will have these code snippets:  
 <template>  
  <div class="home">  
-   <h1>Welcome to the Home page</h1>  
+   <h1> Welcome to the Home page </h1>  
    <button @click="logout">Logout</button>  
  </div>  
 </template>  
@@ -142,6 +166,5 @@ export default {
 };  
 </script>  
  
-
 4. Include files SignUp.vue and Login.vue inside the project.
 5. Open:  http://localhost:8080/ in the browser.
