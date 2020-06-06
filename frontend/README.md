@@ -49,8 +49,6 @@ Important: If a person is not logged in and he tries to access any other page ap
             import firebase from 'firebase'
             import Yourpage from '../views/Yourpage.vue'
             
-      * Include the config with api key and project id. (Follow the steps in **How to protect API key?**) 
-      * Include function _onAuthStateChanged()_
       * Put the path for your page in routes[]:
       
             {
