@@ -31,7 +31,7 @@ Important: If a person is not logged in and he tries to access any other page ap
 ### How to protect API key?
 1. Rename .env_sample file in the main directory to .env .
 2. Replace YourAPIKey to the api key you got when you connected your project to firebase 
-3. Replace YourProjectID to the project id you got when you connected your project to firebase 
+3. Likewise replace all the other parameters.
 
 ### Steps to include Firebase Authentication:
 
