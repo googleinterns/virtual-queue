@@ -31,7 +31,6 @@ export default {
         .then(
           () => {
             this.$router.replace("home");
-            alert("Well done! You are now connected");
           },
           err => {
             alert("Oops," + err.message);
