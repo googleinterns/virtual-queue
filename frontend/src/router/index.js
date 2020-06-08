@@ -4,12 +4,9 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import SignUp from '../views/SignUp.vue'
-<<<<<<< HEAD
 import Maps from '../views/Map.vue'
-
-=======
 import Queue from '../views/Queue.vue'
->>>>>>> 1467690... Added dynamic routing and multiple queues
+
 Vue.use(VueRouter)
 
 const routes = [

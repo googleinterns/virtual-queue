@@ -44,6 +44,7 @@
         ></gmap-marker>
       </gmap-map>
     </div>
+    <button @click="logout">Logout</button>
   </div>
 </template>
 
@@ -105,7 +106,17 @@ export default {
   },
 
   methods: {
-    setActive(index) {
+
+    logout: function() {
+      firebase
+        .auth()
+        .signOut()
+        .then(() => {
+          this.$router.replace("login");
+        });
+    },
+
+    setActive(index){
       this.activeIndex = index;
     },
 
