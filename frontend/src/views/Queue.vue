@@ -30,6 +30,7 @@ export default {
       uid: null,
       currentUserRef: null,
       currentStoreRef: null,
+      currentStoreKey: null,
       isUserEnrolled: false,
       queueLength: 0,
       queuePosition: 0
@@ -78,19 +79,16 @@ export default {
     setCurrentStoreRef: function(){
       let dbRef = firebase.database().ref();
       console.log("User Id in setcurrentstore" + this.uid);
-      var tempStoreRef = null;
+      //debugger;
+      var that = this;
       dbRef.child("User/"+this.uid+"/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value", snap =>{
         if(snap.exists()){
-          console.log("Snap ref : "+snap.ref);
-          tempStoreRef = snap.ref;
-          //console.log("Current store ref at end of set current ref: " + this.currentStoreRef);
+          that.currentStoreRef = snap.ref;
         }
         else{
           console.log("Error: current store ref");
         }
       });
-      this.currentStoreRef = tempStoreRef;
-      console.log("Current store ref at end of set current ref: " + tempStoreRef);
     },
     setCurrentUserRef: function() {
       let dbRef = firebase.database().ref();
@@ -113,8 +111,8 @@ export default {
       });
       this.isUserEnrolled = true;
       //Enter StoreID to SubscribedStoreID
-      var storeRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
-      storeRef.set({
+      this.currentStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
+      this.currentStoreRef.set({
         StoreID : this.storeId
       });
     },
@@ -128,6 +126,7 @@ export default {
       console.log("Userid: "+this.uid);
       console.log("UserRef:"+ this.currentUserRef);
       console.log(this.currentStoreRef);
+      debugger;
       this.currentStoreRef.remove();
     },
     queueInc: function(snap){
