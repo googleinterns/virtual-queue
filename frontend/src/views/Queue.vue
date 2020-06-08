@@ -28,8 +28,7 @@ export default {
     return{
       storeId: this.$route.params.StoreId,
       uid: null,
-      currentUserRef: null,
-      currentStoreRef: null,
+      currentUserKey: null,
       currentStoreKey: null,
       isUserEnrolled: false,
       queueLength: 0,
@@ -53,9 +52,8 @@ export default {
         if (snapshot.exists()){
           this.isUserEnrolled = true;
           this.setQueuePosition();
-          this.setCurrentUserRef();
-          this.setCurrentStoreRef();
-          console.log("StoreRef in userInit: " + this.currentStoreRef);
+          this.setCurrentUserKey();
+          this.setCurrentStoreKey();
         }
         else{
           this.isUserEnrolled = false;
@@ -76,58 +74,56 @@ export default {
         this.queuePosition = count;
       });
     },
-    setCurrentStoreRef: function(){
+    setCurrentStoreKey: function(){
       let dbRef = firebase.database().ref();
-      console.log("User Id in setcurrentstore" + this.uid);
+      //console.log("User Id in setcurrentstore" + this.uid);
       //debugger;
       var that = this;
       dbRef.child("User/"+this.uid+"/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value", snap =>{
         if(snap.exists()){
-          that.currentStoreRef = snap.ref;
+          that.currentStoreKey = Object.keys(snap.val())[0];
         }
         else{
           console.log("Error: current store ref");
         }
       });
     },
-    setCurrentUserRef: function() {
+    setCurrentUserKey: function() {
       let dbRef = firebase.database().ref();
-      dbRef.child("Store/"+this.storeId+"/UsersInQueue").orderByChild("UserId").equalTo(this.uid).once("value",snapshot => {
-        if (snapshot.exists()){
-          this.currentUserRef = snapshot.ref;
+      var that = this;
+      dbRef.child("Store/"+this.storeId+"/UsersInQueue").orderByChild("UserId").equalTo(this.uid).once("value",snap => {
+        if (snap.exists()){
+          console.log("snap: " + Object.keys(snap.val())[0]);
+          that.currentUserKey = Object.keys(snap.val())[0];
         }
         else{
           console.log("Error: Store present in SubscribedStoreID but user not present in queue");
         }
       });
+      console.log(this.currentUserKey);
     },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
       //Enter User to Queue
       this.queuePosition = this.queueLength + 1;
-      this.currentUserRef = dbRef.child("Store/"+this.storeId+"/UsersInQueue").push();
-      this.currentUserRef.set({
+      var currentUserRef = dbRef.child("Store/"+this.storeId+"/UsersInQueue").push();
+      currentUserRef.set({
         UserId : this.uid
       });
       this.isUserEnrolled = true;
       //Enter StoreID to SubscribedStoreID
-      this.currentStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
-      this.currentStoreRef.set({
+      var currentStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
+      currentStoreRef.set({
         StoreID : this.storeId
       });
     },
     exitQueue: function(){
-      //let dbRef = firebase.database().ref();
+      let dbRef = firebase.database().ref();
       //Remove User from Queue
-      this.currentUserRef.remove();
+      dbRef.child("Store/"+this.storeId+"/UsersInQueue/"+this.currentUserKey).remove();
       this.isUserEnrolled = false;
       //Remove StoreID from SubscribedStoreID
-      console.log("Storeid:"+this.storeId);
-      console.log("Userid: "+this.uid);
-      console.log("UserRef:"+ this.currentUserRef);
-      console.log(this.currentStoreRef);
-      debugger;
-      this.currentStoreRef.remove();
+      dbRef.child("User/"+ this.uid + "/SubscribedStoreID/"+this.currentStoreKey).remove();
     },
     queueInc: function(snap){
       this.queueLength += snap.numChildren();
@@ -135,7 +131,7 @@ export default {
     queueDec: function(snap){
       this.queueLength -= snap.numChildren();
       if(this.isUserEnrolled){
-        var currentKey = this.currentUserRef.key;
+        var currentKey = this.currentUserKey;
         if(snap.numChildren()==1){
           if(currentKey>snap.key){
             this.queuePosition--;
@@ -153,7 +149,6 @@ export default {
   },
   created() {
     this.userInit();
-    console.log("current Store Ref in created:" + this.currentStoreRef);
   },
   mounted() {
     //Listening to changes in the queue
