@@ -89,8 +89,6 @@ export default {
           console.log("Error: current store ref");
         }
       });
-      this.currentStoreRef = tempStoreRef;
-      console.log("Current store ref at end of set current ref: " + tempStoreRef);
     },
     setCurrentUserKey: function() {
       let dbRef = firebase.database().ref();
