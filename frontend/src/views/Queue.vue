@@ -122,7 +122,7 @@ export default {
       });
     },
     exitQueue: function(){
-      //let dbRef = firebase.database().ref();
+      let dbRef = firebase.database().ref();
       //Remove User from Queue
       dbRef.child("Store/"+this.storeId+"/UsersInQueue/"+this.currentUserKey).remove();
       this.isUserEnrolled = false;
@@ -153,7 +153,6 @@ export default {
   },
   created() {
     this.userInit();
-    console.log("current Store Ref in created:" + this.currentStoreRef);
   },
   mounted() {
     //Listening to changes in the queue
