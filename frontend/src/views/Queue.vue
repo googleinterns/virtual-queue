@@ -29,6 +29,7 @@ export default {
       storeId: this.$route.params.StoreId,
       uid: null,
       currentUserRef: null,
+      currentStoreRef: null,
       isUserEnrolled: false,
       queueLength: 0,
       queuePosition: 0
@@ -52,6 +53,7 @@ export default {
           this.isUserEnrolled = true;
           this.setQueuePosition();
           this.setCurrentUserRef();
+          this.setCurrentStoreRef();
         }
         else{
           this.isUserEnrolled = false;
@@ -70,6 +72,17 @@ export default {
           count++;
         });
         this.queuePosition = count;
+      });
+    },
+    setCurrentStoreRef: function(){
+      let dbRef = firebase.database().ref();
+      dbRef.child("User/"+this.uid+"/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value", snap =>{
+        if(snap.exists()){
+          this.currentStoreRef = snap.ref;
+        }
+        else{
+          console.log("Error: current store ref");
+        }
       });
     },
     setCurrentUserRef: function() {
@@ -99,18 +112,15 @@ export default {
       });
     },
     exitQueue: function(){
-      let dbRef = firebase.database().ref();
+      //let dbRef = firebase.database().ref();
       //Remove User from Queue
       this.currentUserRef.remove();
       this.isUserEnrolled = false;
       //Remove StoreID from SubscribedStoreID
-      var subscribedStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID");
-      subscribedStoreRef.orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
-        if(snapshot.exists()){
-          var storeRef = snapshot.ref;
-          storeRef.remove();
-        }
-      });
+      console.log(this.storeId);
+      console.log("UserRef:"+ this.currentUserRef);
+      console.log(this.currentStoreRef);
+      this.currentStoreRef.remove();
     },
     queueInc: function(snap){
       this.queueLength += snap.numChildren();
