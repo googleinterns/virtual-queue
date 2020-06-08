@@ -13,7 +13,7 @@
     <br><br>
     <button :disabled="!isUserEnrolled" @click="exitQueue">Leave Queue</button>
     <br><br>
-    <button @click="logout">Logout</button>
+    <p><router-link :to="{ name: 'Home' }">Back</router-link></p>
   </div>
 </template>
 
@@ -35,6 +35,7 @@ export default {
     }
   },
   methods: {
+    //Logout needs fixing
     logout: function() {
       firebase
         .auth()
@@ -44,14 +45,13 @@ export default {
         });
     },
     userInit: function() {
-      console.log(this.$route.params.StoreId);
       let dbRef = firebase.database().ref();
       this.uid = firebase.auth().currentUser.uid;
       dbRef.child("User/"+ this.uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
         if (snapshot.exists()){
           this.isUserEnrolled = true;
-          this.setCurrentUserRef();
           this.setQueuePosition();
+          this.setCurrentUserRef();
         }
         else{
           this.isUserEnrolled = false;
@@ -62,8 +62,9 @@ export default {
       let dbRef = firebase.database().ref();
       dbRef.child("Store/"+this.storeId+"/UsersInQueue").once("value", snap => {
         var count = 0;
+        var uid = this.uid;
         snap.forEach(function(childSnap){
-          if(this.uid==childSnap.val().userId){
+          if(uid==childSnap.val().userId){
             return true;
           }
           count++;
@@ -78,16 +79,14 @@ export default {
           this.currentUserRef = snapshot.ref;
         }
         else{
-          console.log("Doesn't exist");
+          console.log("Error: Store present in SubscribedStoreID but user not present in queue");
         }
       });
     },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
-      console.log(this.uid);
       //Enter User to Queue
       this.queuePosition = this.queueLength + 1;
-      console.log("enter"+this.storeId);
       this.currentUserRef = dbRef.child("Store/"+this.storeId+"/UsersInQueue").push();
       this.currentUserRef.set({
         UserId : this.uid
