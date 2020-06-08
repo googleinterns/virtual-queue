@@ -1,61 +1,108 @@
 <template>
   <div>
+  <h1 class="title is-2">Search for your favourite stores!</h1>
     <div>
       <label>
-        <gmap-autocomplete
-          style="width:50%;"
-          @place_changed="setPlace">
-        </gmap-autocomplete
-        >
-        <button @click="addMarker">Add</button>
+      <div class="field is-grouped search">
+        <p class="control is-expanded">
+          <input class="input" type="text" placeholder="Pizza places near me">
+        </p>
+        <p class="control">
+          <a class="button is-info">
+            Search
+          </a>
+        </p>
+      </div>
       </label>
       <br/>
 
     </div>
     <br>
 
-    <ul id="example-1">
-  <li v-for="mark in markers" :key="mark.location">
-    {{ mark.location }}
-  </li>
-</ul>
-    <gmap-map
-      :center="center"
-      :zoom="12"
-      style="width:100%;  height: 400px;"
-    >
-      <gmap-marker
-        :key="index"
-        v-for="(m, index) in markers"
-        :position="m.position"
-        @click="Queue"
-      ></gmap-marker>
-    </gmap-map>
+    <div id="wrapper" class="content">
+
+      <ul id="places" >
+        <li v-for="(mark, index) in markers" :key="mark.location" :ref="`${mark.id}`" :class="{ 'active': activeIndex === index }">
+          {{ mark.location }}
+        </li>
+      </ul>
+      <gmap-map
+        :center="center"
+        :zoom="10"
+        id="map"  
+      >
+        <gmap-marker
+          :key="index"
+          v-for="(m, index) in markers"
+          :position="m.position"
+          @click="QueuePage(m.id)"
+          @mouseover="setActive(index)"
+          @mouseout="setInactive"
+        ></gmap-marker>
+      </gmap-map>
+    </div>
   </div>
 </template>
+<style scoped>
+  
+  #wrapper{
+    width:80%;
+    display:flex;
+    justify-content:center;
+    margin: 0 auto;
+  }
 
+  #places, #map{
+    margin: 2%;
+  }
+
+  #map{
+    width:70%;
+    height:500px;
+  }
+
+  .active{
+    background-color: #3298dc;
+  }
+
+  li{
+    font-size: 25px;
+  }
+
+  .search{
+    width:40%;
+    margin: 0 auto;
+  }
+
+</style>
 <script>
 import firebase from "firebase";
 export default {
   name: "Map",
   data() {
+
+    var queues = []
+    var center = { lat: 28.7041, lng: 78.1025 }
+    firebase.database().ref().child("Store").once("value", function(snap){
+      snap.forEach(function(childSnap){
+        var store = childSnap.val();
+        center = { lat: store.Latitude, lng: store.Longitude }
+        queues.push({ 
+          location: store.StoreName,
+          position: {lat: store.Latitude, lng: store.Longitude},
+          id: childSnap.key,
+        });
+      });
+      
+    });
     return {
       // default to Montreal to keep it simple
       // change this to whatever makes sense
 
-      center: { lat: 28.7041, lng: 78.1025 },
-      markers: [
-        {
-          location: "Hotel 1",
-          position: {lat: 28.5379, lng: 77.1970},
-          queue_id: "1",
-        },
-        {
-          location: "Hotel 2",
-          position: {lat: 28.5473, lng: 77.2034}
-        }
-      ],
-      // markers: [{position: {lat: 28.5479, lng: 77.2031 }, location:"Hotel Palace", queueid:"1"}],
+
+      center: center,
+      markers: queues,
+      activeIndex: undefined,
       places: [],
       currentPlace: null,
     };
@@ -63,42 +110,20 @@ export default {
 
   mounted() {
     this.geolocate();
-    firebase.database().ref().child("Store").once("value", function(snap){
-      // this.markers = null
-      snap.forEach(function(childSnap){
-        var store = childSnap.val();
-        console.log(store.StoreName, store.lat, store.lng);
-        // this.markers.push({ 
-        //   location: store.StoreName,
-        //   position: {lat: store.lat, lng: store.lng}
-        // });
-      });
-      
-    });
-
   },
-
-  // created(){
-
-  //   firebase.database().ref().child("Store").once("value", function(snap){
-  //     // this.markers = null
-  //     snap.forEach(function(childSnap){
-  //       var store = childSnap.val();
-  //       console.log(store.StoreName, store.lat, store.lng);
-  //       this.markers.push({ 
-  //         location: store.StoreName,
-  //         position: {lat: store.lat, lng: store.lng}
-  //       });
-  //     });
-      
-  //   });
-
-  // },
 
   methods: {
 
-    Queue(){
-      this.$router.replace("sign-up");
+    setActive(index){
+      this.activeIndex = index;
+    },
+
+    setInactive(){
+      this.activeIndex = undefined;
+    },
+
+    QueuePage(id){
+      this.$router.replace("queue/"+id);
     },
     // receives a place object via the autocomplete component
     setPlace(place) {

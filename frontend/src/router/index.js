@@ -32,10 +32,10 @@ const routes = [
     name: 'Maps',
     component: Maps
   },
-  {
-    path: '*',
-    redirect: '/login'
-  },
+  // {
+  //   path: '*',
+  //   redirect: '/login'
+  // },
   {
     path: '/',
     redirect: '/login'
