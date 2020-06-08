@@ -42,8 +42,8 @@ export default {
         });
     },
     userInit: function() {
-      const dbRef = firebase.database().ref();
-      const uid = firebase.auth().currentUser.uid;
+      let dbRef = firebase.database().ref();
+      let uid = firebase.auth().currentUser.uid;
       dbRef.child("User/"+ uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeID).once("value",snapshot => {
         if (snapshot.exists()){
           this.isUserEnrolled = true;
@@ -56,9 +56,9 @@ export default {
       });
     },
     setQueuePosition: function() {
-      const dbRef = firebase.database().ref();
-      const uid = firebase.auth().currentUser.uid;
-      dbRef.child("Queue").once("value", snap => {
+      let dbRef = firebase.database().ref();
+      let uid = firebase.auth().currentUser.uid;
+      dbRef.child("Store/"+this.storeID+"/UsersInQueue").once("value", snap => {
         var count = 0;
         snap.forEach(function(childSnap){
           if(uid==childSnap.val().userId){
@@ -70,9 +70,9 @@ export default {
       });
     },
     setCurrentUserRef: function() {
-      const dbRef = firebase.database().ref();
-      const uid = firebase.auth().currentUser.uid;
-      dbRef.child("Queue").orderByChild("UserId").equalTo(uid).once("value",snapshot => {
+      let dbRef = firebase.database().ref();
+      let uid = firebase.auth().currentUser.uid;
+      dbRef.child("Store/"+this.storeID+"/UsersInQueue").orderByChild("UserId").equalTo(uid).once("value",snapshot => {
         if (snapshot.exists()){
           this.currentUserRef = snapshot.ref;
         }
@@ -82,11 +82,11 @@ export default {
       });
     },
     enterQueue: function() {
-      const dbRef = firebase.database().ref();
-      const uid = firebase.auth().currentUser.uid;
+      let dbRef = firebase.database().ref();
+      let uid = firebase.auth().currentUser.uid;
       //Enter User to Queue
       this.queuePosition = this.queueLength + 1;
-      this.currentUserRef = dbRef.child("Queue").push();
+      this.currentUserRef = dbRef.child("Store/"+this.storeID+"/UsersInQueue").push();
       this.currentUserRef.set({
         UserId : firebase.auth().currentUser.uid
       });
@@ -98,8 +98,8 @@ export default {
       });
     },
     exitQueue: function(){
-      const dbRef = firebase.database().ref();
-      const uid = firebase.auth().currentUser.uid;
+      let dbRef = firebase.database().ref();
+      let uid = firebase.auth().currentUser.uid;
       //Remove User from Queue
       this.currentUserRef.remove();
       this.isUserEnrolled = false;
@@ -139,9 +139,9 @@ export default {
   },
   mounted() {
     //Listening to changes in the queue
-    const dbRef = firebase.database().ref();
-    dbRef.child('Queue').on("child_added", this.queueInc);
-    dbRef.child('Queue').on("child_removed", this.queueDec);
+    let dbRef = firebase.database().ref();
+    dbRef.child("Store/"+this.storeID+"/UsersInQueue").on("child_added", this.queueInc);
+    dbRef.child("Store/"+this.storeID+"/UsersInQueue").on("child_removed", this.queueDec);
   }
 };
 </script>
