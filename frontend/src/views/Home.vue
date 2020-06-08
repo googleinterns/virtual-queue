@@ -2,6 +2,7 @@
   <div class="home">
     <h1>Welcome to the Home page</h1>
     <br>
+      <h2>Your UserID is : {{uid}}</h2>
     <div v-if="!isUserEnrolled">
       <h2>The size of the queue is : {{queueLength}}</h2>
     </div>
@@ -25,6 +26,7 @@ export default {
   components: {},
   data(){
     return{
+      uid: null,
       currentUserRef: null,
       isUserEnrolled: false,
       storeID : 1,
@@ -43,8 +45,8 @@ export default {
     },
     userInit: function() {
       let dbRef = firebase.database().ref();
-      let uid = firebase.auth().currentUser.uid;
-      dbRef.child("User/"+ uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeID).once("value",snapshot => {
+      this.uid = firebase.auth().currentUser.uid;
+      dbRef.child("User/"+ this.uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeID).once("value",snapshot => {
         if (snapshot.exists()){
           this.isUserEnrolled = true;
           this.setCurrentUserRef();
@@ -57,11 +59,10 @@ export default {
     },
     setQueuePosition: function() {
       let dbRef = firebase.database().ref();
-      let uid = firebase.auth().currentUser.uid;
       dbRef.child("Store/"+this.storeID+"/UsersInQueue").once("value", snap => {
         var count = 0;
         snap.forEach(function(childSnap){
-          if(uid==childSnap.val().userId){
+          if(this.uid==childSnap.val().userId){
             return true;
           }
           count++;
@@ -71,8 +72,7 @@ export default {
     },
     setCurrentUserRef: function() {
       let dbRef = firebase.database().ref();
-      let uid = firebase.auth().currentUser.uid;
-      dbRef.child("Store/"+this.storeID+"/UsersInQueue").orderByChild("UserId").equalTo(uid).once("value",snapshot => {
+      dbRef.child("Store/"+this.storeID+"/UsersInQueue").orderByChild("UserId").equalTo(this.uid).once("value",snapshot => {
         if (snapshot.exists()){
           this.currentUserRef = snapshot.ref;
         }
@@ -83,28 +83,27 @@ export default {
     },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
-      let uid = firebase.auth().currentUser.uid;
+      console.log(this.uid);
       //Enter User to Queue
       this.queuePosition = this.queueLength + 1;
       this.currentUserRef = dbRef.child("Store/"+this.storeID+"/UsersInQueue").push();
       this.currentUserRef.set({
-        UserId : firebase.auth().currentUser.uid
+        UserId : this.uid
       });
       this.isUserEnrolled = true;
       //Enter StoreID to SubscribedStoreID
-      var storeRef = dbRef.child("User/"+ uid + "/SubscribedStoreID").push();
+      var storeRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
       storeRef.set({
         StoreID : this.storeID
       });
     },
     exitQueue: function(){
       let dbRef = firebase.database().ref();
-      let uid = firebase.auth().currentUser.uid;
       //Remove User from Queue
       this.currentUserRef.remove();
       this.isUserEnrolled = false;
       //Remove StoreID from SubscribedStoreID
-      var subscribedStoreRef = dbRef.child("User/"+ uid + "/SubscribedStoreID");
+      var subscribedStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID");
       subscribedStoreRef.orderByChild("StoreID").equalTo(this.storeID).once("value",snapshot => {
         if(snapshot.exists()){
           var storeRef = snapshot.ref;
