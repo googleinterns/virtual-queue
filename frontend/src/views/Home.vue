@@ -48,13 +48,28 @@ export default {
         if (snapshot.exists()){
           this.isUserEnrolled = true;
           this.setCurrentUserRef();
+          this.setQueuePosition();
         }
         else{
           this.isUserEnrolled = false;
         }
       });
     },
-    setCurrentUserRef: function(){
+    setQueuePosition: function() {
+      const dbRef = firebase.database().ref();
+      const uid = firebase.auth().currentUser.uid;
+      dbRef.child("Queue").once("value", snap => {
+        var count = 0;
+        snap.forEach(function(childSnap){
+          if(uid==childSnap.val().userId){
+            return true;
+          }
+          count++;
+        });
+        this.queuePosition = count;
+      });
+    },
+    setCurrentUserRef: function() {
       const dbRef = firebase.database().ref();
       const uid = firebase.auth().currentUser.uid;
       dbRef.child("Queue").orderByChild("UserId").equalTo(uid).once("value",snapshot => {
