@@ -38,7 +38,6 @@ export default {
     }
   },
   methods: {
-    //Logout needs fixing
     logout: function() {
       firebase
         .auth()
