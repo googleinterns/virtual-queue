@@ -6,7 +6,6 @@ import Login from '../views/Login.vue'
 import SignUp from '../views/SignUp.vue'
 import Maps from '../views/Map.vue'
 import Queue from '../views/Queue.vue'
-
 Vue.use(VueRouter)
 
 const routes = [
@@ -29,9 +28,19 @@ const routes = [
     component: SignUp
   },
   {
+<<<<<<< HEAD
     path: '/map',
     name: 'Maps',
     component: Maps
+=======
+    path: '/queue/:StoreId',
+    name: 'Queue',
+    component: Queue
+  },
+  {
+    path: '*',
+    redirect: '/login'
+>>>>>>> deabd2abe25d9f6d38229afd60157c72e118c3c6
   },
   {
     path: '/queue/:StoreId',
