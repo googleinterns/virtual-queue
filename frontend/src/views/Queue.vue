@@ -50,9 +50,7 @@ export default {
     userInit: function() {
       let dbRef = firebase.database().ref();
       var that = this;
-      debugger;
       that.uid = firebase.auth().currentUser.uid;
-      debugger;
       dbRef.child("User/"+ this.uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
         if (snapshot.exists()){
           that.isUserEnrolled = true;
@@ -68,28 +66,21 @@ export default {
     setQueuePosition: function() {
       let dbRef = firebase.database().ref();
       var that = this;
-      debugger;
       dbRef.child("Store/"+this.storeId+"/UsersInQueue").once("value", snap => {
         var count = 1;
         var uid = that.uid;
-        debugger;
         snap.forEach(function(childSnap){
           if(uid==childSnap.val().UserId){
-            debugger;
             that.currentUserKey = childSnap.key;
             that.queuePosition = count;
             return true;
           }
           count++;
-          debugger;
         });
-        debugger;
       });
     },
     setCurrentStoreKey: function(){
       let dbRef = firebase.database().ref();
-      //console.log("User Id in setcurrentstore" + this.uid);
-      //debugger;
       var that = this;
       dbRef.child("User/"+this.uid+"/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value", snap =>{
         if(snap.exists()){
@@ -105,14 +96,12 @@ export default {
       var that = this;
       dbRef.child("Store/"+this.storeId+"/UsersInQueue").orderByChild("UserId").equalTo(this.uid).once("value",snap => {
         if (snap.exists()){
-          console.log("snap: " + Object.keys(snap.val())[0]);
           that.currentUserKey = Object.keys(snap.val())[0];
         }
         else{
           console.log("Error: Store present in SubscribedStoreID but user not present in queue");
         }
       });
-      console.log(this.currentUserKey);
     },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
@@ -162,9 +151,6 @@ export default {
     }
   },
   created() {
-    var x = firebase.auth().currentUser.uid;
-    console.log(x);
-    debugger;
     this.userInit();
   },
   mounted() {
