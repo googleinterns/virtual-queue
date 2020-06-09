@@ -25,17 +25,22 @@ export default {
   },
   methods: {
     login: function() {
-      firebase
-        .auth()
-        .signInWithEmailAndPassword(this.email, this.password)
+      var that = this;
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .then(function() {
+        firebase.auth().signInWithEmailAndPassword(that.email, that.password)
         .then(
           () => {
-            this.$router.replace("map");
+            that.$router.replace("map");
           },
           err => {
             alert("Oops," + err.message);
           }
         );
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
     }
   }
 };
