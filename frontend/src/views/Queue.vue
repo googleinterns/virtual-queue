@@ -109,14 +109,20 @@ export default {
       //Enter User to Queue
       this.queuePosition = this.queueLength + 1;
       var currentUserRef = dbRef.child("Store/"+this.storeId+"/UsersInQueue").push();
+<<<<<<< HEAD
       this.currentUserKey = currentUserRef.key;
+=======
+>>>>>>> deabd2abe25d9f6d38229afd60157c72e118c3c6
       currentUserRef.set({
         UserId : this.uid
       });
       this.isUserEnrolled = true;
       //Enter StoreID to SubscribedStoreID
       var currentStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
+<<<<<<< HEAD
       this.currentStoreKey = currentStoreRef.key;
+=======
+>>>>>>> deabd2abe25d9f6d38229afd60157c72e118c3c6
       currentStoreRef.set({
         StoreID : this.storeId
       });
