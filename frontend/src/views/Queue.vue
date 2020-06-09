@@ -49,31 +49,41 @@ export default {
     },
     userInit: function() {
       let dbRef = firebase.database().ref();
-      this.uid = firebase.auth().currentUser.uid;
+      var that = this;
+      debugger;
+      that.uid = firebase.auth().currentUser.uid;
+      debugger;
       dbRef.child("User/"+ this.uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
         if (snapshot.exists()){
-          this.isUserEnrolled = true;
-          this.setQueuePosition();
-          this.setCurrentUserKey();
-          this.setCurrentStoreKey();
+          that.isUserEnrolled = true;
+          that.setQueuePosition();
+          that.setCurrentUserKey();
+          that.setCurrentStoreKey();
         }
         else{
-          this.isUserEnrolled = false;
+          that.isUserEnrolled = false;
         }
       });
     },
     setQueuePosition: function() {
       let dbRef = firebase.database().ref();
+      var that = this;
+      debugger;
       dbRef.child("Store/"+this.storeId+"/UsersInQueue").once("value", snap => {
-        var count = 0;
-        var uid = this.uid;
+        var count = 1;
+        var uid = that.uid;
+        debugger;
         snap.forEach(function(childSnap){
-          if(uid==childSnap.val().userId){
+          if(uid==childSnap.val().UserId){
+            debugger;
+            that.currentUserKey = childSnap.key;
+            that.queuePosition = count;
             return true;
           }
           count++;
+          debugger;
         });
-        this.queuePosition = count;
+        debugger;
       });
     },
     setCurrentStoreKey: function(){
@@ -152,6 +162,9 @@ export default {
     }
   },
   created() {
+    var x = firebase.auth().currentUser.uid;
+    console.log(x);
+    debugger;
     this.userInit();
   },
   mounted() {
