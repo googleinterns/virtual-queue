@@ -5,15 +5,17 @@
       <h2>Your UserID is : {{uid}}</h2>
     <br>
       <h2>You are in Store : {{storeId}}</h2>
-    <div v-if="!isUserEnrolled">
-      <h2>The size of the queue is : {{queueLength}}</h2>
+    <div v-if="isUserLoaded">
+      <div v-if="!isUserEnrolled">
+        <h2>The size of the queue is : {{queueLength}}</h2>
+      </div>
+      <div v-else>
+        <h2>Your position in the queue is : {{queuePosition}}</h2>
+      </div>
+      <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
+      <br><br>
+      <button :disabled="!isUserEnrolled" @click="exitQueue">Leave Queue</button>
     </div>
-    <div v-else>
-      <h2>Your position in the queue is : {{queuePosition}}</h2>
-    </div>
-    <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
-    <br><br>
-    <button :disabled="!isUserEnrolled" @click="exitQueue">Leave Queue</button>
     <br><br>
     <p><router-link :to="{ name: 'Maps' }">Back</router-link></p>
   </div>
@@ -32,13 +34,13 @@ export default {
       uid: null,
       currentUserKey: null,
       currentStoreKey: null,
+      isUserLoaded: false,
       isUserEnrolled: false,
       queueLength: 0,
       queuePosition: 0
     }
   },
   methods: {
-    //Logout needs fixing
     logout: function() {
       firebase
         .auth()
@@ -49,17 +51,18 @@ export default {
     },
     userInit: function() {
       let dbRef = firebase.database().ref();
+      this.uid = firebase.auth().currentUser.uid;
       var that = this;
-      that.uid = firebase.auth().currentUser.uid;
       dbRef.child("User/"+ this.uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
         if (snapshot.exists()){
           that.isUserEnrolled = true;
           that.setQueuePosition();
-          that.setCurrentUserKey();
           that.setCurrentStoreKey();
+          that.isUserLoaded = true;
         }
         else{
           that.isUserEnrolled = false;
+          that.isUserLoaded = true;
         }
       });
     },
@@ -91,18 +94,6 @@ export default {
         }
       });
     },
-    setCurrentUserKey: function() {
-      let dbRef = firebase.database().ref();
-      var that = this;
-      dbRef.child("Store/"+this.storeId+"/UsersInQueue").orderByChild("UserId").equalTo(this.uid).once("value",snap => {
-        if (snap.exists()){
-          that.currentUserKey = Object.keys(snap.val())[0];
-        }
-        else{
-          console.log("Error: Store present in SubscribedStoreID but user not present in queue");
-        }
-      });
-    },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
       //Enter User to Queue
@@ -113,6 +104,7 @@ export default {
         UserId : this.uid
       });
       this.isUserEnrolled = true;
+
       //Enter StoreID to SubscribedStoreID
       var currentStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
       this.currentStoreKey = currentStoreRef.key;
@@ -125,6 +117,7 @@ export default {
       //Remove User from Queue
       dbRef.child("Store/"+this.storeId+"/UsersInQueue/"+this.currentUserKey).remove();
       this.isUserEnrolled = false;
+      
       //Remove StoreID from SubscribedStoreID
       dbRef.child("User/"+ this.uid + "/SubscribedStoreID/"+this.currentStoreKey).remove();
     },
@@ -132,7 +125,10 @@ export default {
       this.queueLength += snap.numChildren();
     },
     queueDec: function(snap){
+      //Decrementing Queue Length
       this.queueLength -= snap.numChildren();
+
+      //Decrementing Queue Position
       if(this.isUserEnrolled){
         var currentKey = this.currentUserKey;
         if(snap.numChildren()==1){
