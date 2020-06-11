@@ -1,33 +1,43 @@
 <template>
   <div>
-  <h1 class="title is-2">Search for your favourite stores!</h1>
+    <h1 class="title is-2">Search for your favourite stores!</h1>
     <div>
       <label>
-      <div class="field is-grouped search">
-        <p class="control is-expanded">
-          <input class="input" type="text" placeholder="Pizza places near me">
-        </p>
-        <p class="control">
-          <a class="button is-info">
+        <div class="field is-grouped search">
+          <p class="control is-expanded">
+            <input
+              class="input"
+              type="text"
+              placeholder="Pizza places near me"
+            />
+          </p>
+          <!-- <p class="control"> -->
+          <button v-on:click="search">
             Search
-          </a>
-        </p>
-      </div>
+          </button>
+          <!-- </p> -->
+        </div>
       </label>
-      <br/>
+      <br />
     </div>
-    <br>
+
+    <!-- <div v-for="data in mapJson.results" v-bind:key="data">{{ data }}</div> -->
+
+    <br />
+    <!-- </div> -->
+
     <div id="wrapper" class="content">
-      <ul id="places" >
-        <li v-for="(mark, index) in markers" :key="mark.location" :ref="`${mark.id}`" :class="{ 'active': activeIndex === index }">
+      <ul id="places">
+        <li
+          v-for="(mark, index) in markers"
+          :key="mark.location"
+          :ref="`${mark.id}`"
+          :class="{ active: activeIndex === index }"
+        >
           {{ mark.location }}
         </li>
       </ul>
-      <gmap-map
-        :center="center"
-        :zoom="10"
-        id="map"  
-      >
+      <gmap-map :center="center" :zoom="10" id="map">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
@@ -42,40 +52,40 @@
 </template>
 
 <style scoped>
-  
-  #wrapper{
-    width:80%;
-    display:flex;
-    justify-content:center;
-    margin: 0 auto;
-  }
+#wrapper {
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
 
-  #places, #map{
-    margin: 2%;
-  }
+#places,
+#map {
+  margin: 2%;
+}
 
-  #map{
-    width:70%;
-    height:500px;
-  }
+#map {
+  width: 70%;
+  height: 500px;
+}
 
-  .active{
-    background-color: #3298dc;
-  }
+.active {
+  background-color: #3298dc;
+}
 
-  li{
-    font-size: 25px;
-  }
+li {
+  font-size: 25px;
+}
 
-  .search{
-    width:40%;
-    margin: 0 auto;
-  }
-
+.search {
+  width: 40%;
+  margin: 0 auto;
+}
 </style>
 
 <script>
 import firebase from "firebase";
+import json from "./data.json";
 export default {
   name: "Map",
   data() {
@@ -108,12 +118,11 @@ export default {
   },
 
   methods: {
-
-    setActive(index){
+    setActive(index) {
       this.activeIndex = index;
     },
 
-    setInactive(){
+    setInactive() {
       this.activeIndex = undefined;
     },
 
@@ -128,7 +137,7 @@ export default {
       if (this.currentPlace) {
         const marker = {
           lat: this.currentPlace.geometry.location.lat(),
-          lng: this.currentPlace.geometry.location.lng()
+          lng: this.currentPlace.geometry.location.lng(),
         };
         this.markers.push({ position: marker });
         this.places.push(this.currentPlace);
@@ -137,13 +146,57 @@ export default {
       }
     },
     geolocate: function() {
-      navigator.geolocation.getCurrentPosition(position => {
+      navigator.geolocation.getCurrentPosition((position) => {
         this.center = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         };
       });
-    }
-  }
+    },
+
+    search: function() {
+      var queues = []
+      for (var i = 0; i < json.results.length; i++) {
+        var store = json.results[i];
+        let dbRef = firebase.database().ref();
+        var locref = dbRef.child('Store').child(store.place_id);
+        if(locref)
+        {
+            // console.log(locref.orderByChild().val());
+            dbRef.child('Store').child(store.place_id).child('queueOn').once("value", function(snap){
+              if(snap.val() == 1){
+                queues.push({ 
+                  location: store.name,
+                  position: {lat: store.geometry.location.lat, lng: store.geometry.location.lng},
+                  id: snap.key,
+                });
+              }
+            }
+            
+            );
+              // console.lof("WHEE");
+        }
+        // dbRef.child("Store/"+store.place_id+"/queueOn").value, (snapshot) => {
+        //   console.log(i, store.place_id, store.name);
+        //   if (snapshot.exists()) {
+        //     // console.log(store.place_id, store.name);
+
+        //       if(snapshot.val() == 1)
+        //       {
+        //         queues.push({ 
+        //           location: store.name,
+        //           position: {lat: store.geometry.location.lat, lng: store.geometry.location.lng},
+        //           id: snapshot.key,
+        //         });
+
+        //         // console.log(store.place_id , store.name);
+        //       }
+        //     }
+        //   });
+      }
+
+        this.markers = queues;
+    },
+  },
 };
 </script>
