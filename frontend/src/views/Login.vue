@@ -34,13 +34,12 @@ export default {
   },
   methods: {
     login: function() {
-      var that = this;
-      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
-      .then(function() {
-        firebase.auth().signInWithEmailAndPassword(that.email, that.password)
+       firebase
+        .auth()
+        .signInWithEmailAndPassword(this.email, this.password)
         .then(
           () => {
-            that.$router.replace("map");
+            this.$router.replace("map");
           },
           (err) => {
             alert("Oops," + err.message);
