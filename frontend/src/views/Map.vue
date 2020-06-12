@@ -8,35 +8,32 @@
             <input
               class="input"
               type="text"
-              placeholder="Pizza places near me"
+              placeholder="Pizza places"
+              v-model="searchItem"
             />
           </p>
-          <!-- <p class="control"> -->
           <button v-on:click="search">
             Search
           </button>
-          <!-- </p> -->
         </div>
       </label>
       <br />
     </div>
-
-    <!-- <div v-for="data in mapJson.results" v-bind:key="data">{{ data }}</div> -->
-
     <br />
-    <!-- </div> -->
 
-    <div id="wrapper" class="content">
+    <div id="wrapper" class="content"> 
       <ul id="places">
+        <!-- Iterates over markers and obtains location names, activeIndex highlights the location of the marker being hovered on -->
         <li
-          v-for="(mark, index) in markers"
+          v-for="(mark, index) in markers"    
           :key="mark.location"
           :ref="`${mark.id}`"
           :class="{ active: activeIndex === index }"
-        >
+        > 
           {{ mark.location }}
         </li>
       </ul>
+      <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
       <gmap-map :center="center" :zoom="10" id="map">
         <gmap-marker
           :key="index"
@@ -85,31 +82,20 @@ li {
 
 <script>
 import firebase from "firebase";
-import json from "./data.json";
+import axios from "axios";
+
 export default {
   name: "Map",
   data() {
 
-    var queues = []
     var center = { lat: 13.0166, lng: 77.6804 } // Default center to Google Bangalore office :)
-    firebase.database().ref().child("Store").once("value", function(snap){
-      snap.forEach(function(childSnap){
-        var store = childSnap.val();
-        center = { lat: store.Latitude, lng: store.Longitude }
-        queues.push({ 
-          location: store.StoreName,
-          position: {lat: store.Latitude, lng: store.Longitude},
-          id: childSnap.key,
-        });
-      });
-    });
-
     return {
       center: center,
-      markers: queues,
+      markers: [],
       activeIndex: undefined,
       places: [],
       currentPlace: null,
+      searchItem: null,
     };
   },
 
@@ -129,23 +115,12 @@ export default {
     navigateToQueuePage(id){
       this.$router.replace("queue/"+id);
     },
-    // receives a place object via the autocomplete component
+
     setPlace(place) {
       this.currentPlace = place;
     },
-    addMarker() {
-      if (this.currentPlace) {
-        const marker = {
-          lat: this.currentPlace.geometry.location.lat(),
-          lng: this.currentPlace.geometry.location.lng(),
-        };
-        this.markers.push({ position: marker });
-        this.places.push(this.currentPlace);
-        this.center = marker;
-        this.currentPlace = null;
-      }
-    },
-    geolocate: function() {
+
+    geolocate: function() {  // Gets user's location and centers the map around that 
       navigator.geolocation.getCurrentPosition((position) => {
         this.center = {
           lat: position.coords.latitude,
@@ -156,46 +131,35 @@ export default {
 
     search: function() {
       var queues = []
-      for (var i = 0; i < json.results.length; i++) {
-        var store = json.results[i];
+
+      if(this.searchItem == null) // Does not make a request if query is empty
+        return;
+
+      axios
+      .get('https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+this.center.lat+','+this.center.lng+'&radius=1000&name='+this.searchItem+'&key='+process.env.VUE_APP_MAPS_API_KEY)
+      .then(response => {
+        for (var i = 0; i < response.data.results.length; i++) {
+        var store = response.data.results[i];
         let dbRef = firebase.database().ref();
         var locref = dbRef.child('Store').child(store.place_id);
-        if(locref)
+        if(locref) // check if a store with the location ID exists in firebase DB
         {
-            // console.log(locref.orderByChild().val());
+            let localStore  = store;
             dbRef.child('Store').child(store.place_id).child('queueOn').once("value", function(snap){
-              if(snap.val() == 1){
+              if(snap.val() == 1){ // if queue is enabled at store, push it into the array of queues
                 queues.push({ 
-                  location: store.name,
-                  position: {lat: store.geometry.location.lat, lng: store.geometry.location.lng},
-                  id: snap.key,
+                  location: localStore.name,
+                  position: {lat: localStore.geometry.location.lat, lng: localStore.geometry.location.lng},
+                  id: localStore.place_id,
                 });
               }
             }
             
             );
-              // console.lof("WHEE");
         }
-        // dbRef.child("Store/"+store.place_id+"/queueOn").value, (snapshot) => {
-        //   console.log(i, store.place_id, store.name);
-        //   if (snapshot.exists()) {
-        //     // console.log(store.place_id, store.name);
-
-        //       if(snapshot.val() == 1)
-        //       {
-        //         queues.push({ 
-        //           location: store.name,
-        //           position: {lat: store.geometry.location.lat, lng: store.geometry.location.lng},
-        //           id: snapshot.key,
-        //         });
-
-        //         // console.log(store.place_id , store.name);
-        //       }
-        //     }
-        //   });
-      }
-
-        this.markers = queues;
+      }  
+      })
+        this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB 
     },
   },
 };
