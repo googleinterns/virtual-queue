@@ -1,8 +1,25 @@
 import firebase from "firebase";
 
+export function getQueuePosition(storeId, userId, callBack){
+    //Pass a callBack function as an argument while calling this function, the callBack function has queuePosition as an argument
+    //If userId is null, function returns queueLength
+    let dbRef = firebase.database().ref();
+    dbRef.child(this.getUserPath(storeId)).once("value", snap => {
+        var queuePosition = 1;
+        snap.forEach(function(childSnap){
+            if(userId==childSnap.val().UserID){
+                return true;
+            }
+            queuePosition++;
+        });
+        callBack(queuePosition);
+    });
+}
+
 export const database_call = {
     getQueuePosition: function(storeId, userId, callBack){
         //Pass a callBack function as an argument while calling this function, the callBack function has queuePosition as an argument
+        //If userId is null, function returns queueLength
         let dbRef = firebase.database().ref();
         dbRef.child(this.getUserPath(storeId)).once("value", snap => {
             var queuePosition = 1;
@@ -42,5 +59,8 @@ export const database_call = {
     },
     getUserPath: function(storeId){
         return `Store/${storeId}/UsersInQueue`;
+    },
+    printHello: function(){
+        console.log("Hello!");
     }
 }
