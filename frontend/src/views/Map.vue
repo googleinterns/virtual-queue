@@ -42,6 +42,20 @@
           @mouseover="setActive(index)"
           @mouseout="setInactive"
         ></gmap-marker>
+        <gmap-info-window 
+          v-for="(m,index) in markers"
+          :position="m.position"
+          :key="m.id"
+            :opened="activeIndex === index" 
+            :options="{
+              pixelOffset: {
+                width: 0,
+                height: -35
+              }
+            }"
+            >
+             {{m.location}}
+        </gmap-info-window>
       </gmap-map>
     </div>
     <button @click="logout">Logout</button>
@@ -98,6 +112,9 @@ export default {
       places: [],
       currentPlace: null,
       searchItem: null,
+      info_marker: null,
+      infowindow: {lat: 10, lng: 10.0},
+      window_open: false
     };
   },
 
@@ -118,6 +135,7 @@ export default {
 
     setActive(index){
       this.activeIndex = index;
+      this.window_open = true;
     },
 
     setInactive() {
