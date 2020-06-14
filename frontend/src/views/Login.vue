@@ -30,7 +30,7 @@ export default {
         .signInWithEmailAndPassword(this.email, this.password)
         .then(
           () => {
-            this.$router.replace("map");
+            this.$router.replace("home");
           },
           err => {
             alert("Oops," + err.message);
