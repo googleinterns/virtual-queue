@@ -8,9 +8,11 @@
     <div v-if="isUserLoaded">
       <div v-if="!isUserEnrolled">
         <h2>The size of the queue is : {{queueLength}}</h2>
+        <h2> The waiting time for this queue is: {{waitingTime}} </h2>
       </div>
       <div v-else>
         <h2>Your position in the queue is : {{queuePosition}}</h2>
+        <h2> Your waiting time is: {{waitingTime}} </h2>
       </div>
       <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
       <br><br>
@@ -23,7 +25,8 @@
 
 <script>
 import firebase from "firebase";
-import {database_call} from "../database.js";
+import { database_call } from "../database.js";
+import { waiting_time } from "../waitingtime.js";
 // @ is an alias to /src
 
 export default {
@@ -38,7 +41,8 @@ export default {
       isUserLoaded: false,
       isUserEnrolled: false,
       queueLength: 0,
-      queuePosition: 0
+      queuePosition: 0,
+      waitingTime: 0
     }
   },
   methods: {
@@ -51,10 +55,14 @@ export default {
         });
     },
     userInit: function() {
+      //Function to populate intial data values
       let dbRef = firebase.database().ref();
       this.uid = firebase.auth().currentUser.uid;
       var that = this;
       dbRef.child(database_call.getStorePath(this.uid)).orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
+        waiting_time.getWaitingTime(that.storeId, that.uid, function(waitingTime){
+          that.waitingTime = waitingTime;
+        });
         if (snapshot.exists()){
           that.isUserEnrolled = true;
           database_call.getQueuePosition(that.storeId, that.uid, function(queuePosition){
@@ -101,6 +109,7 @@ export default {
       dbRef.child(database_call.getStorePath(this.uid)+"/"+this.currentStoreKey).remove();
     },
     queueInc: function(snap){
+      console.log("f called");
       this.queueLength += snap.numChildren();
     },
     queueDec: function(snap){
