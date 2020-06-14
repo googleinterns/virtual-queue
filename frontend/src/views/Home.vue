@@ -8,6 +8,8 @@
     </ul>
     <br><br>
     <button @click="logout">Logout</button>
+    <br><br>
+    <p><router-link :to="{ name: 'Owner' }">For Owners</router-link></p>
   </div>
 </template>
 
@@ -38,6 +40,7 @@ export default {
     populateStores: function() {
       console.log(this.uid);
       var dbRef = firebase.database().ref();
+      var that = this;
       dbRef.child("Store").orderByChild("StoreName").once("value", snap => {
         var tempStores = [];
         snap.forEach(function(childSnap){
@@ -46,7 +49,7 @@ export default {
             StoreName: childSnap.val().StoreName
           });
         });
-        this.stores = tempStores;
+        that.stores = tempStores;
         console.log(tempStores);
       });
     }

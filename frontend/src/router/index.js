@@ -6,6 +6,7 @@ import Login from '../views/Login.vue'
 import SignUp from '../views/SignUp.vue'
 import Maps from '../views/Map.vue'
 import Queue from '../views/Queue.vue'
+import Owner from '../views/Owner.vue'
 Vue.use(VueRouter)
 
 const routes = [
@@ -31,6 +32,11 @@ const routes = [
     path: '/map',
     name: 'Maps',
     component: Maps
+  },
+  {
+    path: '/owner',
+    name: 'Owner',
+    component: Owner
   },
   {
     path: '/queue/:StoreId',
