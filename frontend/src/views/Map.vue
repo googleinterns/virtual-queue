@@ -28,7 +28,9 @@
           :key="mark.location"
           :ref="`${mark.id}`"
           :class="{ active: activeIndex === index }"
-        >
+          @mouseover="setActive(index)"
+          @mouseout="setInactive"
+        > 
           {{ mark.location }}
         </li>
       </ul>
@@ -39,6 +41,7 @@
           v-for="(m, index) in markers"
           :position="m.position"
           @click="navigateToQueuePage(m.id)"
+          :icon="getMarker(index)"
           @mouseover="setActive(index)"
           @mouseout="setInactive"
         ></gmap-marker>
@@ -140,6 +143,14 @@ export default {
 
     setInactive() {
       this.activeIndex = undefined;
+    },
+
+    getMarker(index){
+      if(this.activeIndex == index)
+        return {
+          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+          scaledSize: {width: 40, height: 40},
+        }
     },
 
     navigateToQueuePage(id) {
