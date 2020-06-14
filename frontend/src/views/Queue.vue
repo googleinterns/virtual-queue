@@ -17,7 +17,7 @@
       <button :disabled="!isUserEnrolled" @click="exitQueue">Leave Queue</button>
     </div>
     <br><br>
-    <p><router-link :to="{ name: 'Maps' }">Back</router-link></p>
+    <p><router-link :to="{ name: 'Home' }">Back</router-link></p>
   </div>
 </template>
 
@@ -54,14 +54,9 @@ export default {
       let dbRef = firebase.database().ref();
       this.uid = firebase.auth().currentUser.uid;
       var that = this;
-      debugger;
       dbRef.child(database_call.getStorePath(this.uid)).orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
-        debugger;
         if (snapshot.exists()){
           that.isUserEnrolled = true;
-          // database_call.getQueuePosition(that.storeId, that.uid).then(queuePosition =>{
-          //   that.queuePosition = queuePosition;
-          // });
           database_call.getQueuePosition(that.storeId, that.uid, function(queuePosition){
             that.queuePosition = queuePosition;
           });
@@ -77,7 +72,6 @@ export default {
         }
         that.isUserLoaded = true;
       });
-      debugger;
     },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
@@ -86,7 +80,7 @@ export default {
       var currentUserRef = dbRef.child(database_call.getUserPath(this.storeId)).push();
       this.currentUserKey = currentUserRef.key;
       currentUserRef.set({
-        UserId : this.uid
+        UserID : this.uid
       });
       this.isUserEnrolled = true;
 
