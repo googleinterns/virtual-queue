@@ -23,6 +23,7 @@
 
 <script>
 import firebase from "firebase";
+import {database_call} from "../database.js";
 // @ is an alias to /src
 
 export default {
@@ -53,52 +54,36 @@ export default {
       let dbRef = firebase.database().ref();
       this.uid = firebase.auth().currentUser.uid;
       var that = this;
-      dbRef.child("User/"+ this.uid + "/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
+      debugger;
+      dbRef.child(database_call.getStorePath(this.uid)).orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
+        debugger;
         if (snapshot.exists()){
           that.isUserEnrolled = true;
-          that.setQueuePosition();
-          that.setCurrentStoreKey();
-          that.isUserLoaded = true;
+          // database_call.getQueuePosition(that.storeId, that.uid).then(queuePosition =>{
+          //   that.queuePosition = queuePosition;
+          // });
+          database_call.getQueuePosition(that.storeId, that.uid, function(queuePosition){
+            that.queuePosition = queuePosition;
+          });
+          database_call.getCurrentUserKey(that.storeId, that.uid, function(currentUserKey){
+            that.currentUserKey = currentUserKey;
+          });
+          database_call.getCurrentStoreKey(that.storeId, that.uid, function(currentStoreKey){
+            that.currentStoreKey = currentStoreKey;
+          });
         }
         else{
           that.isUserEnrolled = false;
-          that.isUserLoaded = true;
         }
+        that.isUserLoaded = true;
       });
-    },
-    setQueuePosition: function() {
-      let dbRef = firebase.database().ref();
-      var that = this;
-      dbRef.child("Store/"+this.storeId+"/UsersInQueue").once("value", snap => {
-        var count = 1;
-        var uid = that.uid;
-        snap.forEach(function(childSnap){
-          if(uid==childSnap.val().UserId){
-            that.currentUserKey = childSnap.key;
-            that.queuePosition = count;
-            return true;
-          }
-          count++;
-        });
-      });
-    },
-    setCurrentStoreKey: function(){
-      let dbRef = firebase.database().ref();
-      var that = this;
-      dbRef.child("User/"+this.uid+"/SubscribedStoreID").orderByChild("StoreID").equalTo(this.storeId).once("value", snap =>{
-        if(snap.exists()){
-          that.currentStoreKey = Object.keys(snap.val())[0];
-        }
-        else{
-          console.log("Error: current store ref");
-        }
-      });
+      debugger;
     },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
       //Enter User to Queue
       this.queuePosition = this.queueLength + 1;
-      var currentUserRef = dbRef.child("Store/"+this.storeId+"/UsersInQueue").push();
+      var currentUserRef = dbRef.child(database_call.getUserPath(this.storeId)).push();
       this.currentUserKey = currentUserRef.key;
       currentUserRef.set({
         UserId : this.uid
@@ -106,7 +91,7 @@ export default {
       this.isUserEnrolled = true;
 
       //Enter StoreID to SubscribedStoreID
-      var currentStoreRef = dbRef.child("User/"+ this.uid + "/SubscribedStoreID").push();
+      var currentStoreRef = dbRef.child(database_call.getStorePath(this.uid)).push();
       this.currentStoreKey = currentStoreRef.key;
       currentStoreRef.set({
         StoreID : this.storeId
@@ -115,11 +100,11 @@ export default {
     exitQueue: function(){
       let dbRef = firebase.database().ref();
       //Remove User from Queue
-      dbRef.child("Store/"+this.storeId+"/UsersInQueue/"+this.currentUserKey).remove();
+      dbRef.child(database_call.getUserPath(this.storeId)+"/"+this.currentUserKey).remove();
       this.isUserEnrolled = false;
       
       //Remove StoreID from SubscribedStoreID
-      dbRef.child("User/"+ this.uid + "/SubscribedStoreID/"+this.currentStoreKey).remove();
+      dbRef.child(database_call.getStorePath(this.uid)+"/"+this.currentStoreKey).remove();
     },
     queueInc: function(snap){
       this.queueLength += snap.numChildren();
@@ -152,8 +137,8 @@ export default {
   mounted() {
     //Listening to changes in the queue
     let dbRef = firebase.database().ref();
-    dbRef.child("Store/"+this.storeId+"/UsersInQueue").on("child_added", this.queueInc);
-    dbRef.child("Store/"+this.storeId+"/UsersInQueue").on("child_removed", this.queueDec);
+    dbRef.child(database_call.getUserPath(this.storeId)).on("child_added", this.queueInc);
+    dbRef.child(database_call.getUserPath(this.storeId)).on("child_removed", this.queueDec);
   }
 };
 </script>
