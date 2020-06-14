@@ -5,18 +5,23 @@
       <h2>Your UserID is : {{uid}}</h2>
     <br>
       <h2>You are in Store : {{storeId}}</h2>
-    <div v-if="isUserLoaded">
-      <div v-if="!isUserEnrolled">
-        <h2>The size of the queue is : {{queueLength}}</h2>
-        <h2> The waiting time for this queue is: {{waitingTime}} </h2>
+    <div v-if="isEnabled">
+      <div v-if="isUserLoaded">
+        <div v-if="!isUserEnrolled">
+          <h2>The size of the queue is : {{queueLength}}</h2>
+          <h2> The waiting time for this queue is: {{waitingTime}} </h2>
+        </div>
+        <div v-else>
+          <h2>Your position in the queue is : {{queuePosition}}</h2>
+          <h2> Your waiting time is: {{waitingTime}} </h2>
+        </div>
+        <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
+        <br><br>
+        <button :disabled="!isUserEnrolled" @click="exitQueue">Leave Queue</button>
       </div>
-      <div v-else>
-        <h2>Your position in the queue is : {{queuePosition}}</h2>
-        <h2> Your waiting time is: {{waitingTime}} </h2>
-      </div>
-      <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
-      <br><br>
-      <button :disabled="!isUserEnrolled" @click="exitQueue">Leave Queue</button>
+    </div>
+    <div v-else>
+      <h2>Queue Disabled.</h2>
     </div>
     <br><br>
     <p><router-link :to="{ name: 'Home' }">Back</router-link></p>
@@ -42,7 +47,8 @@ export default {
       isUserEnrolled: false,
       queueLength: 0,
       queuePosition: 0,
-      waitingTime: 0
+      waitingTime: 0,
+      isEnabled: null
     }
   },
   methods: {
@@ -53,6 +59,13 @@ export default {
         .then(() => {
           this.$router.replace("login");
         });
+    },
+    storeInit: function(){
+      let dbRef = firebase.database().ref();
+      var that = this;
+      dbRef.child("Store/"+ this.storeId + "/IsEnabled").once("value", snap=>{
+        that.isEnabled = snap.val();
+      })
     },
     userInit: function() {
       //Function to populate intial data values
@@ -109,7 +122,6 @@ export default {
       dbRef.child(database_call.getStorePath(this.uid)+"/"+this.currentStoreKey).remove();
     },
     queueInc: function(snap){
-      console.log("f called");
       this.queueLength += snap.numChildren();
     },
     queueDec: function(snap){
@@ -135,6 +147,7 @@ export default {
     }
   },
   created() {
+    this.storeInit();
     this.userInit();
   },
   mounted() {
