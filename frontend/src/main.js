@@ -4,6 +4,10 @@ import App from './App.vue'
 import router from './router'
 import * as VueGoogleMaps from "vue2-google-maps";
 import './../node_modules/bulma/css/bulma.css';
+import Chartkick from 'vue-chartkick'
+import Chart from 'chart.js'
+
+Vue.use(Chartkick.use(Chart))
 
 Vue.config.productionTip = false
 let app = '';

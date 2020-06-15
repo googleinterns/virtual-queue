@@ -5,7 +5,22 @@
     <h2>Your UserID is : {{ uid }}</h2>
     <br />
     <h2>You are in Store : {{ storeId }}</h2>
+
     <div v-if="isEnabled">
+      <br />
+      <br />
+      <br />
+      <h1 class="head">Current Queue Status</h1>
+      <p>(People before token {{ starttoken }} have been resolved)</p>
+      <br />
+      <line-chart
+        class="container is-fluid is-8"
+        :data="graph"
+        xtitle="Token range"
+        ytitle="Number of people resolved"
+      ></line-chart>
+      <br />
+      <br />
       <div v-if="isUserLoaded">
         <div v-if="!isUserEnrolled">
           <h2>The size of the queue is : {{ queueLength }}</h2>
@@ -49,6 +64,9 @@ export default {
       queuePosition: 0,
       tokenNumber: 0,
       isEnabled: null,
+      waitingTime: 0,
+      starttoken: 0,
+      graph: [],
     };
   },
   methods: {
@@ -136,6 +154,75 @@ export default {
         }
       }
     },
+    makegraph: function() {
+      let dbref = firebase.database().ref();
+      dbref
+        .child("Store/" + this.storeId + "/UsersInQueue")
+        .on("value", (snap) => {
+          var linegraph = [];
+          var firsttoken = 0;
+          var lasttoken = 0;
+          var temp = 0;
+          snap.forEach(function(child) {
+            if (temp == 0) {
+              firsttoken = child.child("TokenId").val();
+            } else firsttoken = Math.min(firsttoken, child.child("TokenId").val());
+            lasttoken = Math.max(lasttoken, child.child("TokenId").val());
+            temp++;
+          });
+          this.starttoken = firsttoken;
+          var range = 20;
+          range = Math.ceil((lasttoken - firsttoken) / 10);
+          range = 20;
+
+          firsttoken = firsttoken - (firsttoken % range);
+          var counter = 0;
+          var multi = firsttoken / range + 1;
+          var l, r, left, right, key, value;
+          snap.forEach(function(child) {
+            if (child.child("TokenId").val() <= range * multi) counter++;
+            else {
+              r = range * multi;
+              l = range * (multi - 1);
+              left = l.toString();
+              right = r.toString();
+              key = left + "-" + right;
+              value = range - counter;
+              var pair = [];
+              pair.push(key);
+              pair.push(value);
+              linegraph.push(pair);
+              counter = 0;
+              multi++;
+              while (child.child("TokenId").val() > multi * range) {
+                r = range * multi;
+                l = range * (multi - 1);
+                left = l.toString();
+                right = r.toString();
+                value = range - counter;
+                key = left + "-" + right;
+                var pair1 = [];
+                pair1.push(key);
+                pair1.push(value);
+                linegraph.push(pair1);
+                multi++;
+              }
+              counter = 1;
+            }
+          });
+          r = range * multi;
+          l = range * (multi - 1);
+          left = l.toString();
+          right = r.toString();
+          key = left + "-" + right;
+          value = range - counter;
+          var pair2 = [];
+          pair2.push(key);
+          pair2.push(value);
+          linegraph.push(pair2);
+          this.graph = linegraph;
+        });
+    },
   },
   created() {
     this.storeInit();
@@ -145,6 +232,7 @@ export default {
     // Listening to changes in the queue
     database_call.setQueueIncListener(this.storeId, this.queueInc);
     database_call.setQueueDecListener(this.storeId, this.queueDec);
+    this.makegraph();
   },
 };
 </script>
