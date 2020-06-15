@@ -8,11 +8,9 @@
     <div v-if="isUserLoaded">
       <div v-if="!isUserEnrolled">
         <h2>The size of the queue is : {{queueLength}}</h2>
-        <h2> The waiting time for this queue is: {{waitingTime}} </h2>
       </div>
       <div v-else>
         <h2>Your position in the queue is : {{queuePosition}}</h2>
-        <h2> Your waiting time is: {{waitingTime}} </h2>
       </div>
       <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
       <br><br>
@@ -81,43 +79,73 @@ export default {
         that.isUserLoaded = true;
       });
     },
-    enterQueue: function() {
+    getToken: function(callBack){
       let dbRef = firebase.database().ref();
-
-      //Enter User to Queue
-      var currentUserRef = dbRef.child(database_call.getUserPath(this.storeId)).push();
-      this.currentUserKey = currentUserRef.key;
-
-      //Enter StoreID to SubscribedStoreID
-      var currentStoreRef = dbRef.child(database_call.getStorePath(this.uid)).push();
-      this.currentStoreKey = currentStoreRef.key;
-
-      var updateQueue = {};
-      updateQueue[database_call.getUserPath(this.storeId)+"/"+this.currentUserKey] = {
-        UserID : this.uid
-      };
-      updateQueue[database_call.getStorePath(this.uid)+"/"+this.currentStoreKey] = {
-        StoreID : this.storeId
-      };
-
-      var that = this;
-      dbRef.update(updateQueue, function(error){
+      debugger;
+      var currentTokenRef = dbRef.child("Store/"+this.storeId+"/CurrentToken");
+      currentTokenRef.transaction(function(currentToken){
+        debugger;
+        return currentToken + 1;
+      }, function(error, committed, token){
         if(error){
           console.log(error);
         }
-        else{
-          that.isUserEnrolled = true;
-          that.queuePosition = that.queueLength;
+        else if(!committed){
+          console.log("Commit error: No data is returned");
         }
+        else{
+          debugger;
+          callBack(token.val());
+          debugger;
+        }
+      });
+      debugger;
+    },
+    enterQueue: function() {
+      let dbRef = firebase.database().ref();
+      debugger;
+      var that = this;
+      this.getToken(function(token){
+        debugger;
+        console.log("adding user");
+        //Enter User to Queue
+        var currentUserRef = dbRef.child(database_call.getUserPath(that.storeId)).push();
+        that.currentUserKey = currentUserRef.key;
+
+        //Enter StoreID to SubscribedStoreID
+        var currentStoreRef = dbRef.child(database_call.getStorePath(that.uid)).push();
+        that.currentStoreKey = currentStoreRef.key;
+
+        var updateQueue = {};
+        updateQueue[database_call.getUserPath(that.storeId)+"/"+that.currentUserKey] = {
+          UserID : that.uid,
+          Token : token
+        };
+        updateQueue[database_call.getStorePath(that.uid)+"/"+that.currentStoreKey] = {
+          StoreID : that.storeId
+        };
+
+        dbRef.update(updateQueue, function(error){
+          if(error){
+            console.log(error);
+          }
+          else{
+            that.isUserEnrolled = true;
+            that.queuePosition = that.queueLength;
+          }
+        });
       });
     },
     exitQueue: function(){
       let dbRef = firebase.database().ref();
 
       var updateQueue = {};
+      //remove user from Queue
       updateQueue[database_call.getUserPath(this.storeId)+"/"+this.currentUserKey] = {
-        UserID : null
+        UserID : null,
+        Token : null
       };
+      //remove store from Subscribed Store ID
       updateQueue[database_call.getStorePath(this.uid)+"/"+this.currentStoreKey] = {
         StoreID : null
       };
@@ -133,16 +161,16 @@ export default {
       });
     },
     queueInc: function(snap){
-      this.queueLength += snap.numChildren();
+      this.queueLength += snap.numChildren()/2;
     },
     queueDec: function(snap){
       //Decrementing Queue Length
-      this.queueLength -= snap.numChildren();
+      this.queueLength -= snap.numChildren()/2;
 
       //Decrementing Queue Position
       if(this.isUserEnrolled){
         var currentKey = this.currentUserKey;
-        if(snap.numChildren()==1){
+        if(snap.numChildren()==2){
           if(currentKey>snap.key){
             this.queuePosition--;
           }
