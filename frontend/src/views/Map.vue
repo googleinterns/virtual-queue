@@ -35,7 +35,7 @@
         </li>
       </ul>
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map :center="center" :zoom="10" id="map" @drag="updateCoordinates">
+      <gmap-map :center="center" :zoom="10" id="map" ref="themap">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
@@ -142,10 +142,6 @@ export default {
       this.window_open = true;
     },
 
-    updateCoordinates(location) {
-      console.log(location);
-    },
-
     setInactive() {
       this.activeIndex = undefined;
     },
@@ -186,6 +182,8 @@ export default {
     },
 
     search: function() {
+
+      this.center = this.$refs.themap.$mapObject.getCenter();
       let center = this.center;
       var queues = [];
 
