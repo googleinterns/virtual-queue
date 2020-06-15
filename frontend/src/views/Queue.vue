@@ -83,33 +83,56 @@ export default {
     },
     enterQueue: function() {
       let dbRef = firebase.database().ref();
+
       //Enter User to Queue
-      this.queuePosition = this.queueLength + 1;
       var currentUserRef = dbRef.child(database_call.getUserPath(this.storeId)).push();
       this.currentUserKey = currentUserRef.key;
-      currentUserRef.set({
-        UserID : this.uid
-      });
-      this.isUserEnrolled = true;
 
       //Enter StoreID to SubscribedStoreID
       var currentStoreRef = dbRef.child(database_call.getStorePath(this.uid)).push();
       this.currentStoreKey = currentStoreRef.key;
-      currentStoreRef.set({
+
+      var updateQueue = {};
+      updateQueue[database_call.getUserPath(this.storeId)+"/"+this.currentUserKey] = {
+        UserID : this.uid
+      };
+      updateQueue[database_call.getStorePath(this.uid)+"/"+this.currentStoreKey] = {
         StoreID : this.storeId
+      };
+
+      var that = this;
+      dbRef.update(updateQueue, function(error){
+        if(error){
+          console.log(error);
+        }
+        else{
+          that.isUserEnrolled = true;
+          that.queuePosition = that.queueLength;
+        }
       });
     },
     exitQueue: function(){
       let dbRef = firebase.database().ref();
-      //Remove User from Queue
-      dbRef.child(database_call.getUserPath(this.storeId)+"/"+this.currentUserKey).remove();
-      this.isUserEnrolled = false;
-      
-      //Remove StoreID from SubscribedStoreID
-      dbRef.child(database_call.getStorePath(this.uid)+"/"+this.currentStoreKey).remove();
+
+      var updateQueue = {};
+      updateQueue[database_call.getUserPath(this.storeId)+"/"+this.currentUserKey] = {
+        UserID : null
+      };
+      updateQueue[database_call.getStorePath(this.uid)+"/"+this.currentStoreKey] = {
+        StoreID : null
+      };
+
+      var that = this;
+      dbRef.update(updateQueue, function(error){
+        if(error){
+          console.log(error);
+        }
+        else{
+          that.isUserEnrolled = false;
+        }
+      });
     },
     queueInc: function(snap){
-      console.log("f called");
       this.queueLength += snap.numChildren();
     },
     queueDec: function(snap){
