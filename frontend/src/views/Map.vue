@@ -30,12 +30,12 @@
           :class="{ active: activeIndex === index }"
           @mouseover="setActive(index)"
           @mouseout="setInactive"
-        > 
-          {{ mark.location }}
+        >
+          {{ mark.location }}, {{ mark.time }}
         </li>
       </ul>
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map :center="center" :zoom="10" id="map">
+      <gmap-map :center="center" :zoom="10" id="map" @drag="updateCoordinates">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
@@ -45,19 +45,20 @@
           @mouseover="setActive(index)"
           @mouseout="setInactive"
         ></gmap-marker>
-        <gmap-info-window 
-          v-for="(m,index) in markers"
+        <gmap-marker :position="center" :icon="getMyMarker()"></gmap-marker>
+        <gmap-info-window
+          v-for="(m, index) in markers"
           :position="m.position"
           :key="m.id"
-            :opened="activeIndex === index" 
-            :options="{
-              pixelOffset: {
-                width: 0,
-                height: -35
-              }
-            }"
-            >
-             {{m.location}}
+          :opened="activeIndex === index"
+          :options="{
+            pixelOffset: {
+              width: 0,
+              height: -35,
+            },
+          }"
+        >
+          {{ m.location }}
         </gmap-info-window>
       </gmap-map>
     </div>
@@ -116,8 +117,8 @@ export default {
       currentPlace: null,
       searchItem: null,
       info_marker: null,
-      infowindow: {lat: 10, lng: 10.0},
-      window_open: false
+      infowindow: { lat: 10, lng: 10.0 },
+      window_open: false,
     };
   },
 
@@ -141,16 +142,27 @@ export default {
       this.window_open = true;
     },
 
+    updateCoordinates(location) {
+      console.log(location);
+    },
+
     setInactive() {
       this.activeIndex = undefined;
     },
 
-    getMarker(index){
-      if(this.activeIndex == index)
+    getMarker(index) {
+      if (this.activeIndex == index)
         return {
           url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-          scaledSize: {width: 40, height: 40},
-        }
+          scaledSize: { width: 40, height: 40 },
+        };
+    },
+
+    getMyMarker() {
+      return {
+        url: "http://maps.google.com/mapfiles/ms/icons/orange-dot.png",
+        scaledSize: { width: 40, height: 40 },
+      };
     },
 
     navigateToQueuePage(id) {
@@ -169,9 +181,12 @@ export default {
           lng: position.coords.longitude,
         };
       });
+
+      console.log(this.center);
     },
 
     search: function() {
+      let center = this.center;
       var queues = [];
 
       if (this.searchItem == null)
@@ -203,14 +218,28 @@ export default {
                 .once("value", function(snap) {
                   if (snap.val() == 1) {
                     // if queue is enabled at store, push it into the array of queues
-                    queues.push({
-                      location: localStore.name,
-                      position: {
-                        lat: localStore.geometry.location.lat,
-                        lng: localStore.geometry.location.lng,
-                      },
-                      id: localStore.place_id,
-                    });
+                    axios
+                      .get(
+                        "https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/distancematrix/json?origins=" +
+                          center.lat +
+                          "," +
+                          center.lng +
+                          "&destinations=place_id:" +
+                          localStore.place_id +
+                          "&departure_time=now&key=" +
+                          process.env.VUE_APP_DISTANCE_API_KEY
+                      )
+                      .then((response) => {
+                        queues.push({
+                          location: localStore.name,
+                          position: {
+                            lat: localStore.geometry.location.lat,
+                            lng: localStore.geometry.location.lng,
+                          },
+                          id: localStore.place_id,
+                          time: response.data.rows[0].elements[0].duration.text,
+                        });
+                      });
                   }
                 });
             }
