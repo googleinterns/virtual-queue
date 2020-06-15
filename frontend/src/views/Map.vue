@@ -15,12 +15,9 @@
       </div>
       </label>
       <br/>
-
     </div>
     <br>
-
     <div id="wrapper" class="content">
-
       <ul id="places" >
         <li v-for="(mark, index) in markers" :key="mark.location" :ref="`${mark.id}`" :class="{ 'active': activeIndex === index }">
           {{ mark.location }}
@@ -35,7 +32,7 @@
           :key="index"
           v-for="(m, index) in markers"
           :position="m.position"
-          @click="QueuePage(m.id)"
+          @click="navigateToQueuePage(m.id)"
           @mouseover="setActive(index)"
           @mouseout="setInactive"
         ></gmap-marker>
@@ -43,6 +40,7 @@
     </div>
   </div>
 </template>
+
 <style scoped>
   
   #wrapper{
@@ -75,6 +73,7 @@
   }
 
 </style>
+
 <script>
 import firebase from "firebase";
 export default {
@@ -82,7 +81,7 @@ export default {
   data() {
 
     var queues = []
-    var center = { lat: 28.7041, lng: 78.1025 }
+    var center = { lat: 13.0166, lng: 77.6804 } // Default center to Google Bangalore office :)
     firebase.database().ref().child("Store").once("value", function(snap){
       snap.forEach(function(childSnap){
         var store = childSnap.val();
@@ -93,13 +92,9 @@ export default {
           id: childSnap.key,
         });
       });
-      
     });
+
     return {
-      // default to Montreal to keep it simple
-      // change this to whatever makes sense
-
-
       center: center,
       markers: queues,
       activeIndex: undefined,
@@ -122,7 +117,7 @@ export default {
       this.activeIndex = undefined;
     },
 
-    QueuePage(id){
+    navigateToQueuePage(id){
       this.$router.replace("queue/"+id);
     },
     // receives a place object via the autocomplete component
