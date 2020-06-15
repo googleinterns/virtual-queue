@@ -20,16 +20,15 @@
       <br />
     </div>
     <br />
-
-    <div id="wrapper" class="content"> 
+    <div id="wrapper" class="content">
       <ul id="places">
         <!-- Iterates over markers and obtains location names, activeIndex highlights the location of the marker being hovered on -->
         <li
-          v-for="(mark, index) in markers"    
+          v-for="(mark, index) in markers"
           :key="mark.location"
           :ref="`${mark.id}`"
           :class="{ active: activeIndex === index }"
-        > 
+        >
           {{ mark.location }}
         </li>
       </ul>
@@ -81,14 +80,16 @@ li {
 </style>
 
 <script>
+import Vue from "vue";
 import firebase from "firebase";
 import axios from "axios";
+import VueAxios from "vue-axios";
+Vue.use(VueAxios, axios);
 
 export default {
   name: "Map",
   data() {
-
-    var center = { lat: 13.0166, lng: 77.6804 } // Default center to Google Bangalore office :)
+    var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     return {
       center: center,
       markers: [],
@@ -112,15 +113,16 @@ export default {
       this.activeIndex = undefined;
     },
 
-    navigateToQueuePage(id){
-      this.$router.replace("queue/"+id);
+    navigateToQueuePage(id) {
+      this.$router.replace("queue/" + id);
     },
 
     setPlace(place) {
       this.currentPlace = place;
     },
 
-    geolocate: function() {  // Gets user's location and centers the map around that 
+    geolocate: function() {
+      // Gets user's location and centers the map around that
       navigator.geolocation.getCurrentPosition((position) => {
         this.center = {
           lat: position.coords.latitude,
@@ -130,36 +132,51 @@ export default {
     },
 
     search: function() {
-      var queues = []
+      var queues = [];
 
-      if(this.searchItem == null) // Does not make a request if query is empty
+      if (this.searchItem == null)
+        // Does not make a request if query is empty
         return;
 
+      const parameters = {
+        location: this.center.lat + "," + this.center.lng,
+        radius: "1000",
+        name: this.searchItem,
+        key: process.env.VUE_APP_MAPS_API_KEY,
+      };
+
       axios
-      .get('https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+this.center.lat+','+this.center.lng+'&radius=1000&name='+this.searchItem+'&key='+process.env.VUE_APP_MAPS_API_KEY)
-      .then(response => {
-        for (var i = 0; i < response.data.results.length; i++) {
-        var store = response.data.results[i];
-        let dbRef = firebase.database().ref();
-        var locref = dbRef.child('Store').child(store.place_id);
-        if(locref) // check if a store with the location ID exists in firebase DB
-        {
-            let localStore  = store;
-            dbRef.child('Store').child(store.place_id).child('queueOn').once("value", function(snap){
-              if(snap.val() == 1){ // if queue is enabled at store, push it into the array of queues
-                queues.push({ 
-                  location: localStore.name,
-                  position: {lat: localStore.geometry.location.lat, lng: localStore.geometry.location.lng},
-                  id: localStore.place_id,
+        .get(process.env.VUE_APP_MAPS_URL, { params: parameters })
+        .then((response) => {
+          console.log(response);
+          for (var i = 0; i < response.data.results.length; i++) {
+            var store = response.data.results[i];
+            let dbRef = firebase.database().ref();
+            var locref = dbRef.child("Store").child(store.place_id);
+            if (locref) {
+              // check if a store with the location ID exists in firebase DB
+              let localStore = store;
+              dbRef
+                .child("Store")
+                .child(store.place_id)
+                .child("queueOn")
+                .once("value", function(snap) {
+                  if (snap.val() == 1) {
+                    // if queue is enabled at store, push it into the array of queues
+                    queues.push({
+                      location: localStore.name,
+                      position: {
+                        lat: localStore.geometry.location.lat,
+                        lng: localStore.geometry.location.lng,
+                      },
+                      id: localStore.place_id,
+                    });
+                  }
                 });
-              }
             }
-            
-            );
-        }
-      }  
-      })
-        this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB 
+          }
+        });
+      this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
     },
   },
 };
