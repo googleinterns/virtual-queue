@@ -35,7 +35,7 @@
         </li>
       </ul>
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map :center="center" :zoom="10" id="map" ref="themap">
+      <gmap-map :center="center" :zoom="10" id="map" ref="map">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
@@ -182,8 +182,9 @@ export default {
     },
 
     search: function() {
-
-      this.center = this.$refs.themap.$mapObject.getCenter();
+      let centerDetails = this.$refs.map.$mapObject.getCenter();
+      this.center = { lat: centerDetails.lat(), lng: centerDetails.lng() };
+      console.log(this.center);
       let center = this.center;
       var queues = [];
 
@@ -191,7 +192,7 @@ export default {
         // Does not make a request if query is empty
         return;
 
-      const parameters = {
+      let places_params = {
         location: this.center.lat + "," + this.center.lng,
         radius: "1000",
         name: this.searchItem,
@@ -199,7 +200,7 @@ export default {
       };
 
       axios
-        .get(process.env.VUE_APP_MAPS_URL, { params: parameters })
+        .get(process.env.VUE_APP_PLACES_URL, { params: places_params })
         .then((response) => {
           console.log(response);
           for (var i = 0; i < response.data.results.length; i++) {
@@ -216,17 +217,17 @@ export default {
                 .once("value", function(snap) {
                   if (snap.val() == 1) {
                     // if queue is enabled at store, push it into the array of queues
+                    let distance_params = {
+                      origins: center.lat + "," + center.lng,
+                      destinations: "place_id:" + localStore.place_id,
+                      departure_time: "now",
+                      key: process.env.VUE_APP_DISTANCE_API_KEY,
+                    };
+
                     axios
-                      .get(
-                        "https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/distancematrix/json?origins=" +
-                          center.lat +
-                          "," +
-                          center.lng +
-                          "&destinations=place_id:" +
-                          localStore.place_id +
-                          "&departure_time=now&key=" +
-                          process.env.VUE_APP_DISTANCE_API_KEY
-                      )
+                      .get(process.env.VUE_APP_DISTANCE_URL, {
+                        params: distance_params,
+                      })
                       .then((response) => {
                         queues.push({
                           location: localStore.name,
