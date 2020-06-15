@@ -6,6 +6,8 @@
     <input type="password" v-model="password" placeholder="Password" />
     <br />
     <button @click="signup">Sign Up</button>
+    <p>OR</p>
+    <button @click="googleSignIn">SignUp with Google</button>
     <span>
       or go back to
       <router-link to="/login">login</router-link>.
@@ -37,6 +39,21 @@ export default {
             alert("Oops. " + err.message);
           }
         );
+    },
+    googleSignIn: function() {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      firebase
+        .auth()
+        .signInWithPopup(provider)
+        .then(result => {
+          console.log(result);
+          console.log("Success");
+          this.$router.replace("home");
+        })
+        .catch(function(error) {
+          console.log(error);
+          console.log("UnSuccessful");
+        });
     }
   }
 };
