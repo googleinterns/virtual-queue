@@ -2,6 +2,8 @@ import Vue from 'vue'
 import firebase from 'firebase'
 import App from './App.vue'
 import router from './router'
+import * as VueGoogleMaps from "vue2-google-maps";
+import './../node_modules/bulma/css/bulma.css';
 
 Vue.config.productionTip = false
 let app = '';
@@ -29,3 +31,8 @@ firebase.auth().onAuthStateChanged(() => {
   }
 });
 
+Vue.use(VueGoogleMaps, {
+  load: {
+    key: process.env.VUE_APP_MAPS_API_KEY,
+  }
+});

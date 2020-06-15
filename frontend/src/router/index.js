@@ -4,6 +4,8 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import SignUp from '../views/SignUp.vue'
+import Maps from '../views/Map.vue'
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -26,8 +28,9 @@ const routes = [
     component: SignUp
   },
   {
-    path: '*',
-    redirect: '/login'
+    path: '/map',
+    name: 'Maps',
+    component: Maps
   },
   {
     path: '/',
