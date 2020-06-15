@@ -11,6 +11,7 @@
       </div>
       <div v-else>
         <h2>Your position in the queue is : {{queuePosition}}</h2>
+        <h2>Your token number is : {{tokenNumber}}</h2>
       </div>
       <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
       <br><br>
@@ -40,7 +41,8 @@ export default {
       isUserEnrolled: false,
       queueLength: 0,
       queuePosition: 0,
-      waitingTime: 0
+      waitingTime: 0,
+      tokenNumber: null
     }
   },
   methods: {
@@ -68,6 +70,10 @@ export default {
           });
           database_call.getCurrentUserKey(that.storeId, that.uid, function(currentUserKey){
             that.currentUserKey = currentUserKey;
+
+            dbRef.child(database_call.getUserPath(that.storeId)+"/"+currentUserKey+"/Token").once("value", function(token){
+              that.tokenNumber = token;
+            });
           });
           database_call.getCurrentStoreKey(that.storeId, that.uid, function(currentStoreKey){
             that.currentStoreKey = currentStoreKey;
@@ -131,6 +137,7 @@ export default {
           }
           else{
             that.isUserEnrolled = true;
+            that.tokenNumber = token;
             that.queuePosition = that.queueLength;
           }
         });
