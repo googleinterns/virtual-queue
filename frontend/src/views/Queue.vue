@@ -5,21 +5,26 @@
     <h2>Your UserID is : {{ uid }}</h2>
     <br />
     <h2>You are in Store : {{ storeId }}</h2>
-    <div v-if="isUserLoaded">
-      <div v-if="!isUserEnrolled">
-        <h2>The size of the queue is : {{ queueLength }}</h2>
+    <div v-if="isEnabled">
+      <div v-if="isUserLoaded">
+        <div v-if="!isUserEnrolled">
+          <h2>The size of the queue is : {{ queueLength }}</h2>
+        </div>
+        <div v-else>
+          <h2>Your position in the queue is : {{ queuePosition }}</h2>
+          <h2>Your token number is : {{ tokenNumber }}</h2>
+        </div>
+        <button :disabled="isUserEnrolled" @click="enterQueue">
+          Enter Queue
+        </button>
+        <br /><br />
+        <button :disabled="!isUserEnrolled" @click="exitQueue">
+          Leave Queue
+        </button>
       </div>
-      <div v-else>
-        <h2>Your position in the queue is : {{ queuePosition }}</h2>
-        <h2>Your token number is : {{ tokenNumber }}</h2>
-      </div>
-      <button :disabled="isUserEnrolled" @click="enterQueue">
-        Enter Queue
-      </button>
-      <br /><br />
-      <button :disabled="!isUserEnrolled" @click="exitQueue">
-        Leave Queue
-      </button>
+    </div>
+    <div v-else>
+      <h2>Queue Disabled.</h2>
     </div>
     <br /><br />
     <p><router-link :to="{ name: 'Maps' }">Back</router-link></p>
@@ -43,9 +48,17 @@ export default {
       queueLength: 0,
       queuePosition: 0,
       tokenNumber: 0,
+      isEnabled: null,
     };
   },
   methods: {
+    // Set isEnabled of store
+    storeInit: function() {
+      var that = this;
+      database_call.getIsEnabled(this.storeId, function(isEnabled) {
+        that.isEnabled = isEnabled;
+      });
+    },
     // Function to populate intial data values
     userInit: function() {
       var that = this;
@@ -125,6 +138,7 @@ export default {
     },
   },
   created() {
+    this.storeInit();
     this.userInit();
   },
   mounted() {
