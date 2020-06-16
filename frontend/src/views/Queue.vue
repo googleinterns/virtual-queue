@@ -5,19 +5,18 @@
     <h2>Your UserID is : {{ uid }}</h2>
     <br />
     <h2>You are in Store : {{ storeId }}</h2>
-
     <div v-if="isEnabled">
       <br />
       <br />
       <br />
       <h1 class="head">Current Queue Status</h1>
-      <p>(People before token {{ starttoken }} have been resolved)</p>
+      <p>(People before token {{ startToken }} have been resolved)</p>
       <br />
       <line-chart
         class="container is-fluid is-8"
         :data="graph"
         xtitle="Token range"
-        ytitle="Number of people resolved"
+        ytitle="Percentage of people resolved"
       ></line-chart>
       <br />
       <br />
@@ -65,7 +64,7 @@ export default {
       tokenNumber: 0,
       isEnabled: null,
       waitingTime: 0,
-      starttoken: 0,
+      startToken: 0,
       graph: [],
     };
   },
@@ -154,74 +153,49 @@ export default {
         }
       }
     },
-    makegraph: function() {
-      let dbref = firebase.database().ref();
-      dbref
-        .child("Store/" + this.storeId + "/UsersInQueue")
-        .on("value", (snap) => {
-          var linegraph = [];
-          var firsttoken = 0;
-          var lasttoken = 0;
-          var temp = 0;
-          snap.forEach(function(child) {
-            if (temp == 0) {
-              firsttoken = child.child("TokenId").val();
-            } else firsttoken = Math.min(firsttoken, child.child("TokenId").val());
-            lasttoken = Math.max(lasttoken, child.child("TokenId").val());
-            temp++;
-          });
-          this.starttoken = firsttoken;
-          var range = 20;
-          range = Math.ceil((lasttoken - firsttoken) / 10);
-          range = 20;
-
-          firsttoken = firsttoken - (firsttoken % range);
-          var counter = 0;
-          var multi = firsttoken / range + 1;
-          var l, r, left, right, key, value;
-          snap.forEach(function(child) {
-            if (child.child("TokenId").val() <= range * multi) counter++;
-            else {
-              r = range * multi;
-              l = range * (multi - 1);
-              left = l.toString();
-              right = r.toString();
-              key = left + "-" + right;
-              value = range - counter;
-              var pair = [];
-              pair.push(key);
-              pair.push(value);
-              linegraph.push(pair);
-              counter = 0;
-              multi++;
-              while (child.child("TokenId").val() > multi * range) {
-                r = range * multi;
-                l = range * (multi - 1);
-                left = l.toString();
-                right = r.toString();
-                value = range - counter;
-                key = left + "-" + right;
-                var pair1 = [];
-                pair1.push(key);
-                pair1.push(value);
-                linegraph.push(pair1);
-                multi++;
-              }
-              counter = 1;
-            }
-          });
-          r = range * multi;
-          l = range * (multi - 1);
-          left = l.toString();
-          right = r.toString();
-          key = left + "-" + right;
-          value = range - counter;
-          var pair2 = [];
-          pair2.push(key);
-          pair2.push(value);
-          linegraph.push(pair2);
-          this.graph = linegraph;
-        });
+    makeGraph: function(snap) {
+      var lineGraph = [];
+      var firstToken = 0,
+        lastToken = 0;
+      var firstTokenFlag = 0;
+      snap.forEach(function(child) {
+        if (firstTokenFlag == 0) {
+          // firstTokenflag = 0 detects we are on first token
+          firstToken = child.child(database_call.getTokenIdField()).val();
+          firstTokenFlag = 1;
+        }
+        lastToken = Math.max(
+          lastToken,
+          child.child(database_call.getTokenIdField()).val()
+        );
+      });
+      this.startToken = firstToken;
+      var range = 20;
+      // minMostToken is the token from where the graph starts
+      var minMostToken = firstToken - (firstToken % range);
+      // initialising ranges in lineGraph array
+      for (
+        var lowerBound = minMostToken;
+        lowerBound < lastToken;
+        lowerBound += range
+      ) {
+        var pair = [];
+        var upperBound = lowerBound + range;
+        var key = lowerBound.toString() + "-" + upperBound.toString();
+        pair.push(key);
+        // pushing 100 to replicate it with percentage
+        pair.push(100);
+        lineGraph.push(pair);
+      }
+      var factor = minMostToken / range;
+      // decrementing the people in a range who are not yet resolved
+      snap.forEach(function(child) {
+        var tokenId = child.child(database_call.getTokenIdField()).val();
+        var index = Math.floor(tokenId / range) - factor;
+        // converting number of people into percentage of people resolved
+        lineGraph[index][1] -= 100 / range;
+      });
+      this.graph = lineGraph;
     },
   },
   created() {
@@ -232,7 +206,7 @@ export default {
     // Listening to changes in the queue
     database_call.setQueueIncListener(this.storeId, this.queueInc);
     database_call.setQueueDecListener(this.storeId, this.queueDec);
-    this.makegraph();
+    database_call.setPowerCurveListener(this.storeId, this.makeGraph);
   },
 };
 </script>
