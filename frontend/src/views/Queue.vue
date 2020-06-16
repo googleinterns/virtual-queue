@@ -6,6 +6,20 @@
     <br />
     <h2>You are in Store : {{ storeId }}</h2>
     <div v-if="isEnabled">
+      <br />
+      <br />
+      <br />
+      <h1 class="head">Current Queue Status</h1>
+      <p>(People before token {{ startToken }} have been resolved)</p>
+      <br />
+      <line-chart
+        class="container is-fluid is-8"
+        :data="graph"
+        xtitle="Token range"
+        ytitle="Percentage of people resolved"
+      ></line-chart>
+      <br />
+      <br />
       <div v-if="isUserLoaded">
         <div v-if="!isUserEnrolled">
           <h2>The size of the queue is : {{ queueLength }}</h2>
@@ -49,6 +63,9 @@ export default {
       queuePosition: 0,
       tokenNumber: 0,
       isEnabled: null,
+      waitingTime: 0,
+      startToken: 0,
+      graph: [],
     };
   },
   methods: {
@@ -136,6 +153,50 @@ export default {
         }
       }
     },
+    makeGraph: function(snap) {
+      var lineGraph = [];
+      var firstToken = 0,
+        lastToken = 0;
+      var firstTokenFlag = 0;
+      snap.forEach(function(child) {
+        if (firstTokenFlag == 0) {
+          // firstTokenflag = 0 detects we are on first token
+          firstToken = child.child(database_call.getTokenIdField()).val();
+          firstTokenFlag = 1;
+        }
+        lastToken = Math.max(
+          lastToken,
+          child.child(database_call.getTokenIdField()).val()
+        );
+      });
+      this.startToken = firstToken;
+      var range = 20;
+      // minMostToken is the token from where the graph starts
+      var minMostToken = firstToken - (firstToken % range);
+      // initialising ranges in lineGraph array
+      for (
+        var lowerBound = minMostToken;
+        lowerBound < lastToken;
+        lowerBound += range
+      ) {
+        var pair = [];
+        var upperBound = lowerBound + range;
+        var key = lowerBound.toString() + "-" + upperBound.toString();
+        pair.push(key);
+        // pushing 100 to replicate it with percentage
+        pair.push(100);
+        lineGraph.push(pair);
+      }
+      var factor = minMostToken / range;
+      // decrementing the people in a range who are not yet resolved
+      snap.forEach(function(child) {
+        var tokenId = child.child(database_call.getTokenIdField()).val();
+        var index = Math.floor(tokenId / range) - factor;
+        // converting number of people into percentage of people resolved
+        lineGraph[index][1] -= 100 / range;
+      });
+      this.graph = lineGraph;
+    },
   },
   created() {
     this.storeInit();
@@ -145,6 +206,7 @@ export default {
     // Listening to changes in the queue
     database_call.setQueueIncListener(this.storeId, this.queueInc);
     database_call.setQueueDecListener(this.storeId, this.queueDec);
+    database_call.setPowerCurveListener(this.storeId, this.makeGraph);
   },
 };
 </script>
