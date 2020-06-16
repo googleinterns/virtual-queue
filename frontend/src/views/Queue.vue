@@ -11,6 +11,7 @@
       </div>
       <div v-else>
         <h2>Your position in the queue is : {{ queuePosition }}</h2>
+        <h2>Your token number is : {{ tokenNumber }}</h2>
       </div>
       <button :disabled="isUserEnrolled" @click="enterQueue">
         Enter Queue
@@ -41,6 +42,7 @@ export default {
       isUserEnrolled: false,
       queueLength: 0,
       queuePosition: 0,
+      tokenNumber: 0,
     };
   },
   methods: {
@@ -51,15 +53,14 @@ export default {
       database_call.isUserInQueue(this.storeId, this.uid, function(isEnrolled) {
         if (isEnrolled) {
           that.isUserEnrolled = true;
-          database_call.getQueuePosition(that.storeId, that.uid, function(
-            queuePosition
+          database_call.getUserInfo(that.storeId, that.uid, function(
+            queuePosition,
+            currentUserKey,
+            tokenNumber
           ) {
             that.queuePosition = queuePosition;
-          });
-          database_call.getCurrentUserKey(that.storeId, that.uid, function(
-            currentUserKey
-          ) {
             that.currentUserKey = currentUserKey;
+            that.tokenNumber = tokenNumber;
           });
           database_call.getCurrentStoreKey(that.storeId, that.uid, function(
             currentStoreKey
@@ -77,6 +78,7 @@ export default {
       database_call.addToQueue(this.storeId, this.uid, function(
         currentStoreKey,
         currentUserKey,
+        token,
         error
       ) {
         if (error) {
@@ -86,6 +88,7 @@ export default {
           that.currentStoreKey = currentStoreKey;
           that.isUserEnrolled = true;
           that.queuePosition = that.queueLength;
+          that.tokenNumber = token;
         }
       });
     },
@@ -106,26 +109,17 @@ export default {
       );
     },
     // Incrementing Queue Length
-    queueInc: function(snap) {
-      this.queueLength += snap.numChildren();
+    queueInc: function() {
+      this.queueLength++;
     },
     queueDec: function(snap) {
       // Decrementing Queue Length
-      this.queueLength -= snap.numChildren();
+      this.queueLength--;
 
       // Decrementing Queue Position
       if (this.isUserEnrolled) {
-        var currentKey = this.currentUserKey;
-        if (snap.numChildren() == 1) {
-          if (currentKey > snap.key) {
-            this.queuePosition--;
-          }
-        } else {
-          snap.forEach(function(childSnap) {
-            if (currentKey > childSnap.key) {
-              this.queuePosition--;
-            }
-          });
+        if (this.currentUserKey > snap.key) {
+          this.queuePosition--;
         }
       }
     },
