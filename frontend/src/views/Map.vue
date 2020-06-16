@@ -1,33 +1,39 @@
 <template>
   <div>
-  <h1 class="title is-2">Search for your favourite stores!</h1>
+    <h1 class="title is-2">Search for your favourite stores!</h1>
     <div>
       <label>
-      <div class="field is-grouped search">
-        <p class="control is-expanded">
-          <input class="input" type="text" placeholder="Pizza places near me">
-        </p>
-        <p class="control">
-          <a class="button is-info">
+        <div class="field is-grouped search">
+          <p class="control is-expanded">
+            <input
+              class="input"
+              type="text"
+              placeholder="Pizza places"
+              v-model="searchItem"
+            />
+          </p>
+          <button v-on:click="search">
             Search
-          </a>
-        </p>
-      </div>
+          </button>
+        </div>
       </label>
-      <br/>
+      <br />
     </div>
-    <br>
+    <br />
     <div id="wrapper" class="content">
-      <ul id="places" >
-        <li v-for="(mark, index) in markers" :key="mark.location" :ref="`${mark.id}`" :class="{ 'active': activeIndex === index }">
+      <ul id="places">
+        <!-- Iterates over markers and obtains location names, activeIndex highlights the location of the marker being hovered on -->
+        <li
+          v-for="(mark, index) in markers"
+          :key="mark.location"
+          :ref="`${mark.id}`"
+          :class="{ active: activeIndex === index }"
+        >
           {{ mark.location }}
         </li>
       </ul>
-      <gmap-map
-        :center="center"
-        :zoom="10"
-        id="map"  
-      >
+      <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
+      <gmap-map :center="center" :zoom="10" id="map">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
@@ -42,64 +48,55 @@
 </template>
 
 <style scoped>
-  
-  #wrapper{
-    width:80%;
-    display:flex;
-    justify-content:center;
-    margin: 0 auto;
-  }
+#wrapper {
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
 
-  #places, #map{
-    margin: 2%;
-  }
+#places,
+#map {
+  margin: 2%;
+}
 
-  #map{
-    width:70%;
-    height:500px;
-  }
+#map {
+  width: 70%;
+  height: 500px;
+}
 
-  .active{
-    background-color: #3298dc;
-  }
+.active {
+  background-color: #3298dc;
+}
 
-  li{
-    font-size: 25px;
-  }
+li {
+  font-size: 25px;
+}
 
-  .search{
-    width:40%;
-    margin: 0 auto;
-  }
-
+.search {
+  width: 40%;
+  margin: 0 auto;
+}
 </style>
 
 <script>
+import Vue from "vue";
 import firebase from "firebase";
+import axios from "axios";
+import VueAxios from "vue-axios";
+Vue.use(VueAxios, axios);
+
 export default {
   name: "Map",
   data() {
-
-    var queues = []
-    var center = { lat: 13.0166, lng: 77.6804 } // Default center to Google Bangalore office :)
-    firebase.database().ref().child("Store").once("value", function(snap){
-      snap.forEach(function(childSnap){
-        var store = childSnap.val();
-        center = { lat: store.Latitude, lng: store.Longitude }
-        queues.push({ 
-          location: store.StoreName,
-          position: {lat: store.Latitude, lng: store.Longitude},
-          id: childSnap.key,
-        });
-      });
-    });
-
+    var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     return {
       center: center,
-      markers: queues,
+      markers: [],
       activeIndex: undefined,
       places: [],
       currentPlace: null,
+      searchItem: null,
     };
   },
 
@@ -108,42 +105,79 @@ export default {
   },
 
   methods: {
-
-    setActive(index){
+    setActive(index) {
       this.activeIndex = index;
     },
 
-    setInactive(){
+    setInactive() {
       this.activeIndex = undefined;
     },
 
-    navigateToQueuePage(id){
-      this.$router.replace("queue/"+id);
+    navigateToQueuePage(id) {
+      this.$router.replace("queue/" + id);
     },
-    // receives a place object via the autocomplete component
+
     setPlace(place) {
       this.currentPlace = place;
     },
-    addMarker() {
-      if (this.currentPlace) {
-        const marker = {
-          lat: this.currentPlace.geometry.location.lat(),
-          lng: this.currentPlace.geometry.location.lng()
-        };
-        this.markers.push({ position: marker });
-        this.places.push(this.currentPlace);
-        this.center = marker;
-        this.currentPlace = null;
-      }
-    },
+
     geolocate: function() {
-      navigator.geolocation.getCurrentPosition(position => {
+      // Gets user's location and centers the map around that
+      navigator.geolocation.getCurrentPosition((position) => {
         this.center = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         };
       });
-    }
-  }
+    },
+
+    search: function() {
+      var queues = [];
+
+      if (this.searchItem == null)
+        // Does not make a request if query is empty
+        return;
+
+      const parameters = {
+        location: this.center.lat + "," + this.center.lng,
+        radius: "1000",
+        name: this.searchItem,
+        key: process.env.VUE_APP_MAPS_API_KEY,
+      };
+
+      axios
+        .get(process.env.VUE_APP_MAPS_URL, { params: parameters })
+        .then((response) => {
+          console.log(response);
+          for (var i = 0; i < response.data.results.length; i++) {
+            var store = response.data.results[i];
+            let dbRef = firebase.database().ref();
+            var locref = dbRef.child("Store").child(store.place_id);
+            if (locref) {
+              // check if a store with the location ID exists in firebase DB
+              let localStore = store;
+              dbRef
+                .child("Store")
+                .child(store.place_id)
+                .child("queueOn")
+                .once("value", function(snap) {
+                  if (snap.val() == 1) {
+                    // if queue is enabled at store, push it into the array of queues
+                    queues.push({
+                      location: localStore.name,
+                      position: {
+                        lat: localStore.geometry.location.lat,
+                        lng: localStore.geometry.location.lng,
+                      },
+                      id: localStore.place_id,
+                    });
+                  }
+                });
+            }
+          }
+        });
+      this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
+    },
+  },
 };
 </script>
