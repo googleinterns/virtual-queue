@@ -28,20 +28,48 @@
           :key="mark.location"
           :ref="`${mark.id}`"
           :class="{ active: activeIndex === index }"
+          @mouseover="setActive(index)"
+          @mouseout="setInactive"
         >
-          {{ mark.location }}
+          {{ mark.location }}, {{ mark.time }}
         </li>
       </ul>
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map :center="center" :zoom="10" id="map">
+      <gmap-map
+        :center="center"
+        :zoom="10"
+        id="map"
+        ref="map"
+        @center_changed="updateCenter($event)"
+      >
+        <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
           :position="m.position"
           @click="navigateToQueuePage(m.id)"
+          :icon="getStoreMarker(index)"
           @mouseover="setActive(index)"
           @mouseout="setInactive"
         ></gmap-marker>
+        <gmap-marker
+          :position="markerCenter"
+          :icon="getUserMarker()"
+        ></gmap-marker>
+        <gmap-info-window
+          v-for="(m, index) in markers"
+          :position="m.position"
+          :key="m.id"
+          :opened="activeIndex === index"
+          :options="{
+            pixelOffset: {
+              width: 0,
+              height: -35,
+            },
+          }"
+        >
+          {{ m.location }}
+        </gmap-info-window>
       </gmap-map>
     </div>
     <button @click="logout">Logout</button>
@@ -93,11 +121,13 @@ export default {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     return {
       center: center,
+      markerCenter: center,
       markers: [],
       activeIndex: undefined,
       places: [],
       currentPlace: null,
       searchItem: null,
+      windowOpen: false,
     };
   },
 
@@ -106,7 +136,6 @@ export default {
   },
 
   methods: {
-
     logout: function() {
       firebase
         .auth()
@@ -116,12 +145,35 @@ export default {
         });
     },
 
-    setActive(index){
+    setActive(index) {
       this.activeIndex = index;
+      this.windowOpen = true;
     },
 
     setInactive() {
       this.activeIndex = undefined;
+    },
+
+    getStoreMarker(index) {
+      if (this.activeIndex == index)
+        return {
+          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+          scaledSize: { width: 40, height: 40 },
+        };
+    },
+
+    getUserMarker() {
+      return {
+        url: "http://maps.google.com/mapfiles/ms/icons/orange-dot.png",
+        scaledSize: { width: 40, height: 40 },
+      };
+    },
+
+    updateCenter(event) {
+      this.markerCenter = {
+        lat: event.lat(),
+        lng: event.lng(),
+      };
     },
 
     navigateToQueuePage(id) {
@@ -139,25 +191,28 @@ export default {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
+
+        this.markerCenter = this.center;
       });
     },
 
     search: function() {
+      let center = this.markerCenter;
       var queues = [];
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
         return;
 
-      const parameters = {
-        location: this.center.lat + "," + this.center.lng,
+      let placesParams = {
+        location: this.markerCenter.lat + "," + this.markerCenter.lng,
         radius: "1000",
         name: this.searchItem,
         key: process.env.VUE_APP_MAPS_API_KEY,
       };
 
       axios
-        .get(process.env.VUE_APP_MAPS_URL, { params: parameters })
+        .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
         .then((response) => {
           console.log(response);
           for (var i = 0; i < response.data.results.length; i++) {
@@ -174,14 +229,25 @@ export default {
                 .once("value", function(snap) {
                   if (snap.val() == 1) {
                     // if queue is enabled at store, push it into the array of queues
-                    queues.push({
-                      location: localStore.name,
-                      position: {
-                        lat: localStore.geometry.location.lat,
-                        lng: localStore.geometry.location.lng,
-                      },
-                      id: localStore.place_id,
-                    });
+                    let distanceParams = {
+                      origins: center.lat + "," + center.lng,
+                      destinations: "place_id:" + localStore.place_id,
+                      departure_time: "now",
+                      key: process.env.VUE_APP_DISTANCE_API_KEY,
+                    };
+
+                    axios
+                      .get(process.env.VUE_APP_DISTANCE_URL, {
+                        params: distanceParams,
+                      })
+                      .then((response) => {
+                        queues.push({
+                          location: localStore.name,
+                          position: localStore.geometry.location,
+                          id: localStore.place_id,
+                          time: response.data.rows[0].elements[0].duration.text,
+                        });
+                      });
                   }
                 });
             }
