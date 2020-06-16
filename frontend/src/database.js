@@ -25,29 +25,49 @@ export const database_call = {
       });
   },
 
+  getToken: function(storeId, callBack) {
+    let dbRef = firebase.database().ref();
+    var currentTokenRef = dbRef.child("Store/" + storeId + "/CurrentToken");
+    currentTokenRef.transaction(
+      function(currentToken) {
+        return currentToken + 1;
+      },
+      function(error, committed, token) {
+        if (error) {
+          console.log(error);
+        } else if (!committed) {
+          console.log("Commit error: No data is returned");
+        } else {
+          callBack(token.val());
+        }
+      }
+    );
+  },
+
   // Add user to store and returns: currentUserKey, currentStoreKey, error
   addToQueue: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
+    var that = this;
+    this.getToken(storeId, function(token) {
+      // Enter User to UsersInQueue
+      var currentUserRef = dbRef.child(that.getUserPath(storeId)).push();
+      var currentUserKey = currentUserRef.key;
 
-    // Enter User to UsersInQueue
-    var currentUserRef = dbRef.child(this.getUserPath(storeId)).push();
-    var currentUserKey = currentUserRef.key;
+      // Enter Store to SubscribedStoreID
+      var currentStoreRef = dbRef.child(that.getStorePath(userId)).push();
+      var currentStoreKey = currentStoreRef.key;
 
-    // Enter Store to SubscribedStoreID
-    var currentStoreRef = dbRef.child(this.getStorePath(userId)).push();
-    var currentStoreKey = currentStoreRef.key;
+      var updateQueue = {};
+      updateQueue[that.getUserPath(storeId) + "/" + currentUserKey] = {
+        UserID: userId,
+      };
+      updateQueue[that.getStorePath(userId) + "/" + currentStoreKey] = {
+        StoreID: storeId,
+      };
 
-    var updateQueue = {};
-    updateQueue[this.getUserPath(storeId) + "/" + currentUserKey] = {
-      UserID: userId,
-    };
-    updateQueue[this.getStorePath(userId) + "/" + currentStoreKey] = {
-      StoreID: storeId,
-    };
-
-    // Both updates happen in a transaction
-    dbRef.update(updateQueue, function(error) {
-      callBack(currentStoreKey, currentUserKey, error);
+      dbRef.update(updateQueue, function(error) {
+        callBack(currentStoreKey, currentUserKey, error);
+      });
     });
   },
 
