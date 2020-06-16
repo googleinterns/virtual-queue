@@ -73,6 +73,8 @@
       </gmap-map>
     </div>
     <button @click="logout">Logout</button>
+    <br /><br />
+    <p><router-link :to="{ name: 'Owner' }">For Owners</router-link></p>
   </div>
 </template>
 

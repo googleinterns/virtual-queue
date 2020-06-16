@@ -163,6 +163,54 @@ export const database_call = {
       });
   },
 
+  // Get StoreName and IsEnabled info of store
+  getStoreInfo: function(storeId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child("Store/" + storeId).once("value", (store) => {
+      callBack(store.val().StoreName, store.val().IsEnabled);
+    });
+  },
+
+  // Get the array of OwnedStoreIDs of user
+  getOwnedStoreID: function(userId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child(this.getOwnedStoreIDPath(userId)).once("value", (snap) => {
+      let storeIds = [];
+      snap.forEach(function(childSnap) {
+        storeIds.push(childSnap.val().StoreID);
+      });
+      callBack(storeIds);
+    });
+  },
+
+  // Set IsEnabled value of store
+  toggleQueue: function(storeId, isEnabled, callBack) {
+    var storeRef = firebase
+      .database()
+      .ref()
+      .child(this.getIsEnabledPath(storeId));
+    storeRef.set(isEnabled);
+    callBack();
+  },
+
+  // Get IsEnabled info of store
+  getIsEnabled: function(storeId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child("Store/" + storeId).once("value", (store) => {
+      callBack(store.val().IsEnabled);
+    });
+  },
+
+  // Get path to IsEnabled of store with storeId
+  getIsEnabledPath: function(storeId) {
+    return `Store/${storeId}/IsEnabled`;
+  },
+
+  // Get path to OwnedStoreID child of user with userId
+  getOwnedStoreIDPath: function(userId) {
+    return `User/${userId}/OwnedStoreID`;
+  },
+
   // Get path to SubscribedStoreID child of user with userId
   getStorePath: function(userId) {
     return `User/${userId}/SubscribedStoreID`;
