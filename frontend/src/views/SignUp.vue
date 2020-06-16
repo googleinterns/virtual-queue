@@ -6,13 +6,6 @@
     <input type="password" v-model="password" placeholder="Password" />
     <br />
     <button @click="signup">Sign Up</button>
-    <p>
-      or Sign Up with Google
-      <br />
-      <button @click="googleSignIn" class="google-button">
-        <img alt="Google Logo" src="../assets/google-icon.png" />
-      </button>
-    </p>
     <span>
       or go back to
       <router-link to="/login">login</router-link>.
@@ -45,18 +38,6 @@ export default {
           }
         );
     },
-    googleSignIn() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      firebase
-        .auth()
-        .signInWithPopup(provider)
-        .then(() => {
-          this.$router.replace("home");
-        })
-        .catch((err) => {
-          alert("Oops. " + err.message);
-        });
-    },
   },
 };
 </script>
@@ -79,20 +60,5 @@ span {
   display: block;
   margin-top: 20px;
   font-size: 14px;
-}
-.google-button {
-  width: 75px;
-  background: white;
-  padding: 10px;
-  border-radius: 100%;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
-  outline: 0;
-  border: 0;
-}
-.google-button:active {
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-}
-.google-button img {
-  width: 100%;
 }
 </style>
