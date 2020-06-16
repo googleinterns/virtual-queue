@@ -34,7 +34,7 @@ export default {
   },
   methods: {
     login: function() {
-       firebase
+      firebase
         .auth()
         .signInWithEmailAndPassword(this.email, this.password)
         .then(
