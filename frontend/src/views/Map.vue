@@ -35,17 +35,27 @@
         </li>
       </ul>
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map :center="center" :zoom="10" id="map" ref="map" @center_changed="updateCenter($event)">
+      <gmap-map
+        :center="center"
+        :zoom="10"
+        id="map"
+        ref="map"
+        @center_changed="updateCenter($event)"
+      >
+        <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
           :position="m.position"
           @click="navigateToQueuePage(m.id)"
-          :icon="getMarker(index)"
+          :icon="getStoreMarker(index)"
           @mouseover="setActive(index)"
           @mouseout="setInactive"
         ></gmap-marker>
-        <gmap-marker :position="markerCenter" :icon="getMyMarker()"></gmap-marker>
+        <gmap-marker
+          :position="markerCenter"
+          :icon="getUserMarker()"
+        ></gmap-marker>
         <gmap-info-window
           v-for="(m, index) in markers"
           :position="m.position"
@@ -117,9 +127,7 @@ export default {
       places: [],
       currentPlace: null,
       searchItem: null,
-      info_marker: null,
-      infowindow: { lat: 10, lng: 10.0 },
-      window_open: false,
+      windowOpen: false,
     };
   },
 
@@ -128,7 +136,6 @@ export default {
   },
 
   methods: {
-
     logout: function() {
       firebase
         .auth()
@@ -138,16 +145,16 @@ export default {
         });
     },
 
-    setActive(index){
+    setActive(index) {
       this.activeIndex = index;
-      this.window_open = true;
+      this.windowOpen = true;
     },
 
     setInactive() {
       this.activeIndex = undefined;
     },
 
-    getMarker(index) {
+    getStoreMarker(index) {
       if (this.activeIndex == index)
         return {
           url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
@@ -155,7 +162,7 @@ export default {
         };
     },
 
-    getMyMarker() {
+    getUserMarker() {
       return {
         url: "http://maps.google.com/mapfiles/ms/icons/orange-dot.png",
         scaledSize: { width: 40, height: 40 },
@@ -164,8 +171,8 @@ export default {
 
     updateCenter(event) {
       this.markerCenter = {
-        lat: event.lat(), 
-        lng: event.lng()
+        lat: event.lat(),
+        lng: event.lng(),
       };
     },
 
@@ -190,7 +197,6 @@ export default {
     },
 
     search: function() {
-      
       let center = this.markerCenter;
       var queues = [];
 
@@ -198,7 +204,7 @@ export default {
         // Does not make a request if query is empty
         return;
 
-      let places_params = {
+      let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
         radius: "1000",
         name: this.searchItem,
@@ -206,7 +212,7 @@ export default {
       };
 
       axios
-        .get(process.env.VUE_APP_PLACES_URL, { params: places_params })
+        .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
         .then((response) => {
           console.log(response);
           for (var i = 0; i < response.data.results.length; i++) {
@@ -223,7 +229,7 @@ export default {
                 .once("value", function(snap) {
                   if (snap.val() == 1) {
                     // if queue is enabled at store, push it into the array of queues
-                    let distance_params = {
+                    let distanceParams = {
                       origins: center.lat + "," + center.lng,
                       destinations: "place_id:" + localStore.place_id,
                       departure_time: "now",
@@ -232,15 +238,12 @@ export default {
 
                     axios
                       .get(process.env.VUE_APP_DISTANCE_URL, {
-                        params: distance_params,
+                        params: distanceParams,
                       })
                       .then((response) => {
                         queues.push({
                           location: localStore.name,
-                          position: {
-                            lat: localStore.geometry.location.lat,
-                            lng: localStore.geometry.location.lng,
-                          },
+                          position: localStore.geometry.location,
                           id: localStore.place_id,
                           time: response.data.rows[0].elements[0].duration.text,
                         });
