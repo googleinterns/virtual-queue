@@ -115,6 +115,8 @@ import Vue from "vue";
 import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
+import 'es6-promise/auto'
+
 Vue.use(VueAxios, axios);
 
 export default {
@@ -193,7 +195,6 @@ export default {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-
         this.markerCenter = this.center;
       });
     },
@@ -209,14 +210,16 @@ export default {
       let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
         radius: "1000",
-        name: this.searchItem,
+        query: this.searchItem,
         key: process.env.VUE_APP_MAPS_API_KEY,
       };
 
+      let promises = []
       axios
         .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
         .then((response) => {
           console.log(response);
+
           for (var i = 0; i < response.data.results.length; i++) {
             var store = response.data.results[i];
             let dbRef = firebase.database().ref();
@@ -227,9 +230,9 @@ export default {
               dbRef
                 .child("Store")
                 .child(store.place_id)
-                .child("queueOn")
+                .child("IsEnabled")
                 .once("value", function(snap) {
-                  if (snap.val() == 1) {
+                  if (snap.val()) {
                     // if queue is enabled at store, push it into the array of queues
                     let distanceParams = {
                       origins: center.lat + "," + center.lng,
@@ -238,25 +241,51 @@ export default {
                       key: process.env.VUE_APP_DISTANCE_API_KEY,
                     };
 
-                    axios
-                      .get(process.env.VUE_APP_DISTANCE_URL, {
-                        params: distanceParams,
-                      })
-                      .then((response) => {
-                        queues.push({
-                          location: localStore.name,
-                          position: localStore.geometry.location,
-                          id: localStore.place_id,
-                          time: response.data.rows[0].elements[0].duration.text,
-                        });
-                      });
+                    promises.push(
+                      axios
+                        .get(process.env.VUE_APP_DISTANCE_URL, {
+                          params: distanceParams,
+                        })
+                        .then((response) => {
+                          queues.push({
+                            location: localStore.name,
+                            position: localStore.geometry.location,
+                            id: localStore.place_id,
+                            time: response.data.rows[0].elements[0].duration.text,
+                          });
+                        })
+                    )
                   }
                 });
             }
           }
-        });
-      this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
+
+        console.log(promises);
+        Promise.allSettled(promises).then(response => {this.sortQueue(queues); console.log(response)})
+        .catch(error => console.log(error)) 
+      });
+      // this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
     },
+
+    sortQueue : function(queues){
+      console.log("initial " + queues);
+      for(var i = 0; i < queues.length; i++)
+      {
+        var small = i;
+        for(var j = i; j < queues.length; j++)
+        {
+          if(queues[small].time > queues[j].time)
+            small = j;
+        }
+
+        var temp = queues[i];
+        queues[i] = queues[small];
+        queues[small] = temp;
+      }
+
+      console.log("final " + queues);
+      this.markers = queues;
+    }
   },
 };
 </script>
