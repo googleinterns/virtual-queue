@@ -35,7 +35,7 @@
         </li>
       </ul>
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map :center="center" :zoom="10" id="map" ref="map">
+      <gmap-map :center="center" :zoom="10" id="map" ref="map" @center_changed="updateCenter($event)">
         <gmap-marker
           :key="index"
           v-for="(m, index) in markers"
@@ -45,7 +45,7 @@
           @mouseover="setActive(index)"
           @mouseout="setInactive"
         ></gmap-marker>
-        <gmap-marker :position="center" :icon="getMyMarker()"></gmap-marker>
+        <gmap-marker :position="markerCenter" :icon="getMyMarker()"></gmap-marker>
         <gmap-info-window
           v-for="(m, index) in markers"
           :position="m.position"
@@ -111,6 +111,7 @@ export default {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     return {
       center: center,
+      markerCenter: center,
       markers: [],
       activeIndex: undefined,
       places: [],
@@ -161,6 +162,13 @@ export default {
       };
     },
 
+    updateCenter(event) {
+      this.markerCenter = {
+        lat: event.lat(), 
+        lng: event.lng()
+      };
+    },
+
     navigateToQueuePage(id) {
       this.$router.replace("queue/" + id);
     },
@@ -176,16 +184,14 @@ export default {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-      });
 
-      console.log(this.center);
+        this.markerCenter = this.center;
+      });
     },
 
     search: function() {
-      let centerDetails = this.$refs.map.$mapObject.getCenter();
-      this.center = { lat: centerDetails.lat(), lng: centerDetails.lng() };
-      console.log(this.center);
-      let center = this.center;
+      
+      let center = this.markerCenter;
       var queues = [];
 
       if (this.searchItem == null)
@@ -193,7 +199,7 @@ export default {
         return;
 
       let places_params = {
-        location: this.center.lat + "," + this.center.lng,
+        location: this.markerCenter.lat + "," + this.markerCenter.lng,
         radius: "1000",
         name: this.searchItem,
         key: process.env.VUE_APP_MAPS_API_KEY,
