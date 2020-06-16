@@ -2,8 +2,13 @@ import firebase from "firebase";
 
 const STORE_ID_STRING = "StoreID";
 const USER_ID_STRING = "UserID";
+const TOKEN_ID = "TokenId";
 
 export const database_call = {
+  getTokenIdField: function() {
+    return TOKEN_ID;
+  },
+
   // Returns userId of currently loggged in user
   getUserId: function() {
     return firebase.auth().currentUser.uid;
@@ -238,5 +243,11 @@ export const database_call = {
   setQueueDecListener: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child(this.getUserPath(storeId)).on("child_removed", callBack);
+  },
+
+  // Set listener on UsersinQueue to listen to any change in queue
+  setPowerCurveListener: function(storeId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child(this.getUserPath(storeId)).on("value", callBack);
   },
 };
