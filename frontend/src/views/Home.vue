@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <h1>Welcome to the Home page</h1>
-    <router-link v-bind:to="{path:'/queue'}">Enter Queue</router-link>
     <button @click="logout">Logout</button>
   </div>
 </template>

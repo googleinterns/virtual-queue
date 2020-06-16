@@ -20,7 +20,7 @@ export default {
   data() {
     return {
       email: "",
-      password: ""
+      password: "",
     };
   },
   methods: {
@@ -33,12 +33,12 @@ export default {
             this.$router.replace("home");
             alert("Your account has been created!");
           },
-          err => {
+          (err) => {
             alert("Oops. " + err.message);
           }
         );
-    }
-  }
+    },
+  },
 };
 </script>
 
