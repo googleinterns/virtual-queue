@@ -9,7 +9,7 @@
     <p>
       or Sign Up with Google
       <br />
-      <button @click="GoogleSignIn" class="google-button">
+      <button @click="googleSignIn" class="google-button">
         <img alt="Google Logo" src="../assets/google-icon.png" />
       </button>
     </p>
@@ -27,7 +27,7 @@ export default {
   data() {
     return {
       email: "",
-      password: ""
+      password: "",
     };
   },
   methods: {
@@ -40,25 +40,24 @@ export default {
             this.$router.replace("home");
             alert("Your account has been created!");
           },
-          err => {
+          (err) => {
             alert("Oops. " + err.message);
           }
         );
     },
-    GoogleSignIn() {
+    googleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase
         .auth()
         .signInWithPopup(provider)
-        .then(result => {
-          console.log(result);
+        .then(() => {
           this.$router.replace("home");
         })
-        .catch(err => {
+        .catch((err) => {
           alert("Oops. " + err.message);
         });
-    }
-  }
+    },
+  },
 };
 </script>
 
