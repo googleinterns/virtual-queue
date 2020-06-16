@@ -8,25 +8,21 @@
     <div v-if="isUserLoaded">
       <div v-if="!isUserEnrolled">
         <h2>The size of the queue is : {{queueLength}}</h2>
-        <h2> The waiting time for this queue is: {{waitingTime}} </h2>
       </div>
       <div v-else>
         <h2>Your position in the queue is : {{queuePosition}}</h2>
-        <h2> Your waiting time is: {{waitingTime}} </h2>
       </div>
       <button :disabled="isUserEnrolled" @click="enterQueue">Enter Queue</button>
       <br><br>
       <button :disabled="!isUserEnrolled" @click="exitQueue">Leave Queue</button>
     </div>
     <br><br>
-    <p><router-link :to="{ name: 'Home' }">Back</router-link></p>
+    <p><router-link :to="{ name: 'Maps' }">Back</router-link></p>
   </div>
 </template>
 
 <script>
-import firebase from "firebase";
 import { database_call } from "../database.js";
-import { waiting_time } from "../waitingtime.js";
 // @ is an alias to /src
 
 export default {
@@ -42,28 +38,19 @@ export default {
       isUserEnrolled: false,
       queueLength: 0,
       queuePosition: 0,
-      waitingTime: 0
     }
   },
   methods: {
-    logout: function() {
-      firebase
-        .auth()
-        .signOut()
-        .then(() => {
-          this.$router.replace("login");
-        });
-    },
     userInit: function() {
       //Function to populate intial data values
-      let dbRef = firebase.database().ref();
-      this.uid = firebase.auth().currentUser.uid;
       var that = this;
-      dbRef.child(database_call.getStorePath(this.uid)).orderByChild("StoreID").equalTo(this.storeId).once("value",snapshot => {
-        waiting_time.getWaitingTime(that.storeId, that.uid, function(waitingTime){
-          that.waitingTime = waitingTime;
-        });
-        if (snapshot.exists()){
+
+      this.uid = database_call.getUserId();
+
+      console.log(this.uid);
+
+      database_call.isUserInQueue(this.storeId, this.uid, function(isEnrolled){
+        if(isEnrolled){
           that.isUserEnrolled = true;
           database_call.getQueuePosition(that.storeId, that.uid, function(queuePosition){
             that.queuePosition = queuePosition;
@@ -82,48 +69,24 @@ export default {
       });
     },
     enterQueue: function() {
-      let dbRef = firebase.database().ref();
-
-      //Enter User to Queue
-      var currentUserRef = dbRef.child(database_call.getUserPath(this.storeId)).push();
-      this.currentUserKey = currentUserRef.key;
-
-      //Enter StoreID to SubscribedStoreID
-      var currentStoreRef = dbRef.child(database_call.getStorePath(this.uid)).push();
-      this.currentStoreKey = currentStoreRef.key;
-
-      var updateQueue = {};
-      updateQueue[database_call.getUserPath(this.storeId)+"/"+this.currentUserKey] = {
-        UserID : this.uid
-      };
-      updateQueue[database_call.getStorePath(this.uid)+"/"+this.currentStoreKey] = {
-        StoreID : this.storeId
-      };
 
       var that = this;
-      dbRef.update(updateQueue, function(error){
+      database_call.addToQueue(this.storeId, this.uid, function(currentStoreKey, currentUserKey, error){
         if(error){
           console.log(error);
         }
         else{
+          that.currentUserKey = currentUserKey;
+          that.currentStoreKey = currentStoreKey;
           that.isUserEnrolled = true;
           that.queuePosition = that.queueLength;
         }
       });
     },
     exitQueue: function(){
-      let dbRef = firebase.database().ref();
-
-      var updateQueue = {};
-      updateQueue[database_call.getUserPath(this.storeId)+"/"+this.currentUserKey] = {
-        UserID : null
-      };
-      updateQueue[database_call.getStorePath(this.uid)+"/"+this.currentStoreKey] = {
-        StoreID : null
-      };
 
       var that = this;
-      dbRef.update(updateQueue, function(error){
+      database_call.removeFromQueue(this.storeId, this.uid, this.currentStoreKey, this.currentUserKey, function(error){
         if(error){
           console.log(error);
         }
@@ -133,6 +96,7 @@ export default {
       });
     },
     queueInc: function(snap){
+      //Incrementing Queue Length
       this.queueLength += snap.numChildren();
     },
     queueDec: function(snap){
@@ -162,9 +126,8 @@ export default {
   },
   mounted() {
     //Listening to changes in the queue
-    let dbRef = firebase.database().ref();
-    dbRef.child(database_call.getUserPath(this.storeId)).on("child_added", this.queueInc);
-    dbRef.child(database_call.getUserPath(this.storeId)).on("child_removed", this.queueDec);
+    database_call.setQueueIncListener(this.storeId, this.queueInc);
+    database_call.setQueueDecListener(this.storeId, this.queueDec);
   }
 };
 </script>
