@@ -25,6 +25,7 @@ export const database_call = {
       });
   },
 
+  // Increments the CurrentToken of the store and returns the value to the callBack function
   getToken: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
     var currentTokenRef = dbRef.child("Store/" + storeId + "/CurrentToken");
@@ -44,10 +45,11 @@ export const database_call = {
     );
   },
 
-  // Add user to store and returns: currentUserKey, currentStoreKey, error
+  // Add user to store and returns: currentUserKey, currentStoreKey, token, error
   addToQueue: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
     var that = this;
+    // Retrieve CurrentToken
     this.getToken(storeId, function(token) {
       // Enter User to UsersInQueue
       var currentUserRef = dbRef.child(that.getUserPath(storeId)).push();
@@ -60,13 +62,15 @@ export const database_call = {
       var updateQueue = {};
       updateQueue[that.getUserPath(storeId) + "/" + currentUserKey] = {
         UserID: userId,
+        Token: token,
       };
       updateQueue[that.getStorePath(userId) + "/" + currentStoreKey] = {
         StoreID: storeId,
       };
 
+      // This is a multi-path write and both updates happen in a transaction
       dbRef.update(updateQueue, function(error) {
-        callBack(currentStoreKey, currentUserKey, error);
+        callBack(currentStoreKey, currentUserKey, token, error);
       });
     });
   },
@@ -78,6 +82,7 @@ export const database_call = {
     // Remove User from UsersInQueue
     updateQueue[this.getUserPath(storeId) + "/" + userKey] = {
       UserID: null,
+      Token: null,
     };
 
     // Remove Store from SubscribedStoreID
@@ -88,6 +93,23 @@ export const database_call = {
     // Both updates happen in a transaction
     dbRef.update(updateQueue, function(error) {
       callBack(error);
+    });
+  },
+
+  // Returns the queuePosition, currentUserKey (of the user in UsersInQueue), and tokenNumber
+  getUserInfo: function(storeId, userId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child(this.getUserPath(storeId)).once("value", (snap) => {
+      var queuePosition = 1, currentUserKey = null, tokenNumber = null;
+      snap.forEach(function(childSnap) {
+        if (userId == childSnap.val().UserID) {
+          currentUserKey = childSnap.key;
+          tokenNumber = childSnap.val().Token;
+          return true;
+        }
+        queuePosition++;
+      });
+      callBack(queuePosition, currentUserKey, tokenNumber);
     });
   },
 
