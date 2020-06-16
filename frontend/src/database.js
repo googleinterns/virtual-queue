@@ -28,7 +28,7 @@ export const database_call = {
   // Increments the CurrentToken of the store and returns the value to the callBack function
   getToken: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
-    var currentTokenRef = dbRef.child("Store/" + storeId + "/CurrentToken");
+    var currentTokenRef = dbRef.child(this.getTokenPath(storeId));
     currentTokenRef.transaction(
       function(currentToken) {
         return currentToken + 1;
@@ -173,7 +173,14 @@ export const database_call = {
     return `Store/${storeId}/UsersInQueue`;
   },
 
+  // Get path to CurrentToken of store
+  getTokenPath: function(storeId) {
+    return `Store/${storeId}/CurrentToken`;
+  },
+
   // Set listener on UsersinQueue and listen for addition to queue
+  // https://firebase.google.com/docs/database/web/lists-of-data
+  // This event is triggered once for each existing child and then again every time a new child is added.
   setQueueIncListener: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child(this.getUserPath(storeId)).on("child_added", callBack);
