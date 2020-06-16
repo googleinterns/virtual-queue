@@ -109,26 +109,17 @@ export default {
       );
     },
     // Incrementing Queue Length
-    queueInc: function(snap) {
-      this.queueLength += snap.numChildren() / 2;
+    queueInc: function() {
+      this.queueLength++;
     },
     queueDec: function(snap) {
       // Decrementing Queue Length
-      this.queueLength -= snap.numChildren() / 2;
+      this.queueLength--;
 
       // Decrementing Queue Position
       if (this.isUserEnrolled) {
-        var currentKey = this.currentUserKey;
-        if (snap.numChildren() == 2) {
-          if (currentKey > snap.key) {
-            this.queuePosition--;
-          }
-        } else {
-          snap.forEach(function(childSnap) {
-            if (currentKey > childSnap.key) {
-              this.queuePosition--;
-            }
-          });
+        if (this.currentUserKey > snap.key) {
+          this.queuePosition--;
         }
       }
     },
