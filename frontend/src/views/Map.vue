@@ -20,10 +20,34 @@
       <br />
     </div>
     <br />
+
+    
+
+
+
     <div id="wrapper" class="content">
       <ul id="places">
+          <a  v-for="(mark, index) in markers"
+          :key="mark.location"
+          :ref="`${mark.id}`"
+          :class="{ active: activeIndex === index }"
+          @mouseover="setActive(index)"
+          @mouseout="setInactive" class="box" href="https://octoshrimpy.github.io/bulma-o-steps/">
+    <!-- <div class="rows"> -->
+          <div class="column">
+            <h3 class="title is-4">
+              <strong>{{ mark.location }}</strong>
+            </h3>
+            <h4 class="subtitle is-6">
+              {{mark.time}}
+            </h4>
+          <!-- </div> -->
+    </div>
+      </a>
+      </ul>
+      <!-- <ul id="places"> -->
         <!-- Iterates over markers and obtains location names, activeIndex highlights the location of the marker being hovered on -->
-        <li
+        <!-- <li
           v-for="(mark, index) in markers"
           :key="mark.location"
           :ref="`${mark.id}`"
@@ -32,8 +56,8 @@
           @mouseout="setInactive"
         >
           {{ mark.location }}, {{ mark.time }}
-        </li>
-      </ul>
+        </li> -->
+      <!-- </ul> -->
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
       <gmap-map
         :center="center"
@@ -93,7 +117,7 @@
 
 #map {
   width: 70%;
-  height: 500px;
+  height: 700px;
 }
 
 .active {
@@ -230,9 +254,9 @@ export default {
               dbRef
                 .child("Store")
                 .child(store.place_id)
-                .child("IsEnabled")
+                .child("queueOn")
                 .once("value", function(snap) {
-                  if (snap.val()) {
+                  if (snap.val() == 1) {
                     // if queue is enabled at store, push it into the array of queues
                     let distanceParams = {
                       origins: center.lat + "," + center.lng,
