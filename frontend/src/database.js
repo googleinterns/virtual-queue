@@ -2,7 +2,7 @@ import firebase from "firebase";
 
 const STORE_ID_STRING = "StoreID";
 const USER_ID_STRING = "UserID";
-const TOKEN_ID = "TokenId";
+const TOKEN_ID = "Token";
 
 export const database_call = {
   getTokenIdField: function() {

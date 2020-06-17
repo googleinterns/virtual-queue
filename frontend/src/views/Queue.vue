@@ -90,6 +90,7 @@ export default {
             currentUserKey,
             tokenNumber
           ) {
+            console.log("qP1: "+ queuePosition);
             that.queuePosition = queuePosition;
             that.currentUserKey = currentUserKey;
             that.tokenNumber = tokenNumber;
@@ -101,7 +102,7 @@ export default {
           });
           waiting_time.getWaitingTimeEnrolled(
             that.storeId,
-            that.userId,
+            that.uid,
             function(waitingTime) {
               that.waitingTime = waitingTime;
             }
