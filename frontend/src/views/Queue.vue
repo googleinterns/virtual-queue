@@ -10,6 +10,7 @@
     </div>
     <br />
     <h2>You are in Store : {{ storeId }}</h2>
+    <h1 class="head">{{ storename }} Shop</h1>
     <div v-if="isEnabled">
       <br />
       <br />
@@ -68,6 +69,7 @@ export default {
   data() {
     return {
       storeId: this.$route.params.StoreId,
+      storename: null,
       uid: null,
       currentUserKey: null,
       currentStoreKey: null,
@@ -153,6 +155,15 @@ export default {
       database_call.getStoreInfo(that.storeId, function(store) {
         that.isEnabled = store.IsEnabled;
       });
+    },
+
+    storeName: function() {
+      let dbRef = firebase.database().ref();
+      dbRef
+        .child("Store/" + this.storeId + "/StoreName")
+        .on("value", (snap) => {
+          this.storename = snap.val();
+        });
     },
     // Function to populate intial data values
     userInit: function() {
@@ -397,3 +408,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.head {
+  font-size: 2em;
+}
+.head1 {
+  font-size: 3em;
+}
+</style>
