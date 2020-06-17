@@ -37,8 +37,18 @@ export const database_call = {
     currentStoreRef.transaction(
       function(currentStore) {
         if (currentStore) {
-          currentStore.CurrentToken++;
-          currentStore.QueueLength++;
+          // Increment CurrentToken, if null set to 1
+          if (currentStore.CurrentToken) {
+            currentStore.CurrentToken = currentStore.CurrentToken + 1;
+          } else {
+            currentStore.CurrentToken = 1;
+          }
+          // Increment QueueLength, if null set to 1
+          if (currentStore.QueueLength) {
+            currentStore.QueueLength = currentStore.QueueLength + 1;
+          } else {
+            currentStore.QueueLength = 1;
+          }
         }
         return currentStore;
       },
@@ -86,7 +96,7 @@ export const database_call = {
 
   decQueueLength: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
-    var queueLengthRef = dbRef.child("Store/" + storeId);
+    var queueLengthRef = dbRef.child(this.getQueueLengthPath(storeId));
     queueLengthRef.transaction(
       function(queueLength) {
         return queueLength--;
@@ -215,16 +225,21 @@ export const database_call = {
   },
 
   // Returns the entire store object
-  getStoreObject: function(storeId, callBack){
+  getStoreObject: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child("Store/" + storeId).once("value", (store) => {
-      callBack(store);
+      callBack(store.val());
     });
   },
 
   // Get path to IsEnabled of store with storeId
   getIsEnabledPath: function(storeId) {
     return `Store/${storeId}/IsEnabled`;
+  },
+
+  // Get path to QueueLength of store with storeId
+  getQueueLengthPath: function(storeId) {
+    return `Store/${storeId}/QueueLength`;
   },
 
   // Get path to OwnedStoreID child of user with userId

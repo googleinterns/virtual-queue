@@ -30,12 +30,15 @@ export const waiting_time = {
     });
     callBack(queuePosition);
   },
-  
+
   // Returns the waiting time for a store
   getWaitingTime(storeId, callBack) {
     database_call.getStoreInfo(storeId, function(store) {
-      let waitingTime = store.AvgServeTime * store.QueueLength;
-      callBack(waitingTime);
+      if(store.QueueLength){
+        let waitingTime = store.AvgServeTime * store.QueueLength;
+        callBack(waitingTime);
+      }
+      else callBack(0);
     });
   },
 };
