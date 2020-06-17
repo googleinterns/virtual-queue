@@ -121,22 +121,6 @@ export const database_call = {
   },
 
   // Pass a callBack function as an argument while calling this function, the callBack function has queuePosition as an argument
-  // If userId is null or if userId is not present in the queue, function returns queueLength
-  getQueuePosition: function(storeId, userId, callBack) {
-    let dbRef = firebase.database().ref();
-    dbRef.child(this.getUserPath(storeId)).once("value", (snap) => {
-      var queuePosition = 1;
-      snap.forEach(function(childSnap) {
-        if (userId == childSnap.val().UserID) {
-          return true;
-        }
-        queuePosition++;
-      });
-      callBack(queuePosition);
-    });
-  },
-
-  // Pass a callBack function as an argument while calling this function, the callBack function has queuePosition as an argument
   getCurrentUserKey: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef
@@ -203,19 +187,11 @@ export const database_call = {
     });
   },
 
-  // Get IsEnabled info of store
-  getIsEnabled: function(storeId, callBack) {
+  // Returns the entire store object
+  getStoreObject: function(storeId, callBack){
     let dbRef = firebase.database().ref();
     dbRef.child("Store/" + storeId).once("value", (store) => {
-      callBack(store.val().IsEnabled);
-    });
-  },
-
-  // Get AvgServeTime info of store
-  getAvgServeTime: function(storeId, callBack) {
-    let dbRef = firebase.database().ref();
-    dbRef.child("Store/" + storeId).once("value", (store) => {
-      callBack(store.val().AvgServeTime);
+      callBack(store);
     });
   },
 

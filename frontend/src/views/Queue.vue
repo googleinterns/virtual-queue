@@ -74,8 +74,8 @@ export default {
     // Set isEnabled of store
     storeInit: function() {
       var that = this;
-      database_call.getIsEnabled(this.storeId, function(isEnabled) {
-        that.isEnabled = isEnabled;
+      database_call.getStoreInfo(this.storeId, function(store) {
+        that.isEnabled = store.IsEnabled;
       });
     },
     // Function to populate intial data values
@@ -90,23 +90,22 @@ export default {
             currentUserKey,
             tokenNumber
           ) {
-            console.log("qP1: "+ queuePosition);
             that.queuePosition = queuePosition;
             that.currentUserKey = currentUserKey;
             that.tokenNumber = tokenNumber;
+            waiting_time.calculateWaitingTime(
+              that.storeId,
+              that.queuePosition,
+              function(waitingTime) {
+                that.waitingTime = waitingTime;
+              }
+            );
           });
           database_call.getCurrentStoreKey(that.storeId, that.uid, function(
             currentStoreKey
           ) {
             that.currentStoreKey = currentStoreKey;
           });
-          waiting_time.getWaitingTimeEnrolled(
-            that.storeId,
-            that.uid,
-            function(waitingTime) {
-              that.waitingTime = waitingTime;
-            }
-          );
         } else {
           that.isUserEnrolled = false;
         }
@@ -129,12 +128,14 @@ export default {
           that.isUserEnrolled = true;
           that.queuePosition = that.queueLength;
           that.tokenNumber = token;
+          waiting_time.calculateWaitingTime(
+            that.storeId,
+            that.queuePosition,
+            function(waitingTime) {
+              that.waitingTime = waitingTime;
+            }
+          );
         }
-      });
-      waiting_time.getWaitingTimeEnrolled(that.storeId, that.userId, function(
-        waitingTime
-      ) {
-        that.waitingTime = waitingTime;
       });
     },
     exitQueue: function() {
@@ -166,9 +167,9 @@ export default {
         if (this.currentUserKey > snap.key) {
           this.queuePosition--;
           var that = this;
-          waiting_time.getWaitingTimeEnrolled(
+          waiting_time.calculateWaitingTime(
             that.storeId,
-            that.userId,
+            that.queuePosition,
             function(waitingTime) {
               that.waitingTime = waitingTime;
             }
