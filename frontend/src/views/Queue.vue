@@ -13,6 +13,7 @@
         <div v-else>
           <h2>Your position in the queue is : {{ queuePosition }}</h2>
           <h2>Your token number is : {{ tokenNumber }}</h2>
+          <h2>Your waiting time is : {{ waitingTime }}</h2>
         </div>
         <button :disabled="isUserEnrolled" @click="enterQueue">
           Enter Queue
@@ -33,6 +34,7 @@
 
 <script>
 import { database_call } from "../database.js";
+import { waiting_time } from "../waitingtime.js";
 
 export default {
   name: "Queue",
@@ -49,6 +51,7 @@ export default {
       queuePosition: 0,
       tokenNumber: 0,
       isEnabled: null,
+      waitingTime: null,
     };
   },
   methods: {
@@ -80,6 +83,13 @@ export default {
           ) {
             that.currentStoreKey = currentStoreKey;
           });
+          waiting_time.getWaitingTimeEnrolled(
+            that.storeId,
+            that.userId,
+            function(waitingTime) {
+              that.waitingTime = waitingTime;
+            }
+          );
         } else {
           that.isUserEnrolled = false;
         }
@@ -103,6 +113,11 @@ export default {
           that.queuePosition = that.queueLength;
           that.tokenNumber = token;
         }
+      });
+      waiting_time.getWaitingTimeEnrolled(that.storeId, that.userId, function(
+        waitingTime
+      ) {
+        that.waitingTime = waitingTime;
       });
     },
     exitQueue: function() {
@@ -133,6 +148,14 @@ export default {
       if (this.isUserEnrolled) {
         if (this.currentUserKey > snap.key) {
           this.queuePosition--;
+          var that = this;
+          waiting_time.getWaitingTimeEnrolled(
+            that.storeId,
+            that.userId,
+            function(waitingTime) {
+              that.waitingTime = waitingTime;
+            }
+          );
         }
       }
     },
