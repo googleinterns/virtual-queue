@@ -121,7 +121,7 @@ export const database_call = {
   },
 
   // Pass a callBack function as an argument while calling this function, the callBack function has queuePosition as an argument
-  // If userId is null, function returns queueLength
+  // If userId is null or if userId is not present in the queue, function returns queueLength
   getQueuePosition: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child(this.getUserPath(storeId)).once("value", (snap) => {
@@ -168,14 +168,6 @@ export const database_call = {
       });
   },
 
-  // Get StoreName and IsEnabled info of store
-  getStoreInfo: function(storeId, callBack) {
-    let dbRef = firebase.database().ref();
-    dbRef.child("Store/" + storeId).once("value", (store) => {
-      callBack(store.val().StoreName, store.val().IsEnabled);
-    });
-  },
-
   // Get the array of OwnedStoreIDs of user
   getOwnedStoreID: function(userId, callBack) {
     let dbRef = firebase.database().ref();
@@ -198,11 +190,32 @@ export const database_call = {
     callBack();
   },
 
+  // Get StoreName, IsEnabled, AvgServeTime info of store
+  // Returns an object with fields StoreName, IsEnabled, AvgServeTime
+  getStoreInfo: function(storeId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child("Store/" + storeId).once("value", (snap) => {
+      var store = {};
+      store["StoreName"] = snap.val().StoreName;
+      store["IsEnabled"] = snap.val().IsEnabled;
+      store["AvgServeTime"] = snap.val().AvgServeTime;
+      callBack(store);
+    });
+  },
+
   // Get IsEnabled info of store
   getIsEnabled: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child("Store/" + storeId).once("value", (store) => {
       callBack(store.val().IsEnabled);
+    });
+  },
+
+  // Get AvgServeTime info of store
+  getAvgServeTime: function(storeId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child("Store/" + storeId).once("value", (store) => {
+      callBack(store.val().AvgServeTime);
     });
   },
 

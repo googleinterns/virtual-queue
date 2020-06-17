@@ -51,11 +51,11 @@ export default {
       var that = this;
       database_call.getOwnedStoreID(this.uid, function(storeIds) {
         storeIds.forEach(function(storeId) {
-          database_call.getStoreInfo(storeId, function(storeName, isEnabled) {
+          database_call.getStoreInfo(storeId, function(store) {
             that.stores.push({
               StoreId: storeId,
-              StoreName: storeName,
-              IsEnabled: isEnabled,
+              StoreName: store.StoreName,
+              IsEnabled: store.IsEnabled,
             });
           });
         });
