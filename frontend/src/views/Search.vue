@@ -1,28 +1,43 @@
 <template>
-  <div>
-    <h1 class="title is-2">Search for your favourite stores!</h1>
-    <div>
-      <label>
-        <div class="field is-grouped search">
-          <p class="control is-expanded">
-            <input
-              class="input"
-              type="text"
-              placeholder="Pizza places"
-              v-model="searchItem"
-            />
-          </p>
-          <button v-on:click="search" class="button is-info">
-            Search
-          </button>
-        </div>
-      </label>
-      <br />
+  <div class="container has-text-centered">
+    <h1 class="title is-2">Store finder</h1>
+    <div class="columns is-gapless is-mobile is-centered">
+      <div class="field is-grouped search">
+        <p class="control">
+          <input
+            class="input"
+            type="text"
+            placeholder="Grocery stores nearby"
+            v-model="searchItem"
+          />
+        </p>
+        <button v-on:click="search" class="button is-info">
+          Search
+        </button>
+      </div>
     </div>
-    <br />
-    <div class="container">
     <div class="columns">
       <div class="column is-one-thirds">
+        <div class="card" style="width: 18rem;">
+          <div class="card-body">
+            <p class="title">Card title</p>
+            <p class="card-text">
+              Some quick example text to build on the card title and make up the
+              bulk of the card's content.
+            </p>
+            <a href="#" class="btn btn-primary">Go somewhere</a>
+          </div>
+        </div>
+        <!-- <div class="card">
+          <header class="card-header">
+            <p class="card-header-title">
+              Dominoes
+            </p>
+            <p class="card-header-title">
+              Dominoes
+            </p>
+          </header>
+        </div> -->
         <ul id="places">
           <a
             v-for="(mark, index) in markers"
@@ -89,39 +104,15 @@
     </div>
     </div>
   </div>
-
 </template>
 
 <style scoped>
-#wrapper {
-  width: 80%;
-  display: flex;
-  justify-content: center;
-  margin: 0 auto;
-}
-
-#places,
-#map {
-  margin: 2%;
-}
-
-#map {
-  /* width: 80%; */
-  /* margin-right: 5%; */
-  height: 500px;
-}
-
 .active {
   background-color: #3298dc;
 }
 
-li {
-  font-size: 25px;
-}
-
-.search {
-  width: 40%;
-  margin: 0 auto;
+#map {
+  height: 500px;
 }
 </style>
 
