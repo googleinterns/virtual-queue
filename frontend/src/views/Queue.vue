@@ -74,7 +74,7 @@ export default {
     // Set isEnabled of store
     storeInit: function() {
       var that = this;
-      database_call.getStoreInfo(this.storeId, function(store) {
+      database_call.getStoreInfo(that.storeId, function(store) {
         that.isEnabled = store.IsEnabled;
       });
     },
