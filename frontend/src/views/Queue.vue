@@ -27,6 +27,7 @@
         <div v-else>
           <h2>Your position in the queue is : {{ queuePosition }}</h2>
           <h2>Your token number is : {{ tokenNumber }}</h2>
+          <h2>Your waiting time is : {{ waitingTime }}</h2>
         </div>
         <button :disabled="isUserEnrolled" @click="enterQueue">
           Enter Queue
@@ -47,6 +48,7 @@
 
 <script>
 import { database_call } from "../database.js";
+import { waiting_time } from "../waitingtime.js";
 
 export default {
   name: "Queue",
@@ -72,8 +74,8 @@ export default {
     // Set isEnabled of store
     storeInit: function() {
       var that = this;
-      database_call.getIsEnabled(this.storeId, function(isEnabled) {
-        that.isEnabled = isEnabled;
+      database_call.getStoreInfo(this.storeId, function(store) {
+        that.isEnabled = store.IsEnabled;
       });
     },
     // Function to populate intial data values
@@ -91,6 +93,13 @@ export default {
             that.queuePosition = queuePosition;
             that.currentUserKey = currentUserKey;
             that.tokenNumber = tokenNumber;
+            waiting_time.calculateWaitingTime(
+              that.storeId,
+              that.queuePosition,
+              function(waitingTime) {
+                that.waitingTime = waitingTime;
+              }
+            );
           });
           database_call.getCurrentStoreKey(that.storeId, that.uid, function(
             currentStoreKey
@@ -119,6 +128,13 @@ export default {
           that.isUserEnrolled = true;
           that.queuePosition = that.queueLength;
           that.tokenNumber = token;
+          waiting_time.calculateWaitingTime(
+            that.storeId,
+            that.queuePosition,
+            function(waitingTime) {
+              that.waitingTime = waitingTime;
+            }
+          );
         }
       });
     },
@@ -150,6 +166,14 @@ export default {
       if (this.isUserEnrolled) {
         if (this.currentUserKey > snap.key) {
           this.queuePosition--;
+          var that = this;
+          waiting_time.calculateWaitingTime(
+            that.storeId,
+            that.queuePosition,
+            function(waitingTime) {
+              that.waitingTime = waitingTime;
+            }
+          );
         }
       }
     },
