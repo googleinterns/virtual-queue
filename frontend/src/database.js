@@ -33,10 +33,10 @@ export const database_call = {
   // Increments the CurrentToken and QueueLength of the store and returns the value of CurrentToken to the callBack function
   getToken: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
-    var currentStoreRef = dbRef.child("Store/"+storeId);
+    var currentStoreRef = dbRef.child("Store/" + storeId);
     currentStoreRef.transaction(
       function(currentStore) {
-        if(currentStore){
+        if (currentStore) {
           currentStore.CurrentToken++;
           currentStore.QueueLength++;
         }
@@ -86,7 +86,7 @@ export const database_call = {
 
   decQueueLength: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
-    var queueLengthRef = dbRef.child("Store/"+storeId);
+    var queueLengthRef = dbRef.child("Store/" + storeId);
     queueLengthRef.transaction(
       function(queueLength) {
         return queueLength--;
@@ -107,7 +107,7 @@ export const database_call = {
     let dbRef = firebase.database().ref();
     var that = this;
 
-    this.decQueueLength(storeId, function(){
+    this.decQueueLength(storeId, function() {
       var updateQueue = {};
       // Remove User from UsersInQueue
       updateQueue[that.getUserPath(storeId) + "/" + userKey] = {
@@ -200,8 +200,8 @@ export const database_call = {
     callBack();
   },
 
-  // Get StoreName, IsEnabled, AvgServeTime info of store
-  // Returns an object with fields StoreName, IsEnabled, AvgServeTime
+  // Get StoreName, IsEnabled, AvgServeTime and QueueLength info of store
+  // Returns an object with fields StoreName, IsEnabled, AvgServeTime and QueueLength
   getStoreInfo: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child("Store/" + storeId).once("value", (snap) => {
@@ -209,6 +209,7 @@ export const database_call = {
       store["StoreName"] = snap.val().StoreName;
       store["IsEnabled"] = snap.val().IsEnabled;
       store["AvgServeTime"] = snap.val().AvgServeTime;
+      store["QueueLength"] = snap.val().QueueLength;
       callBack(store);
     });
   },
