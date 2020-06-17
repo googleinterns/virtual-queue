@@ -201,6 +201,7 @@ export default {
     search: function() {
       let center = this.markerCenter;
       var queues = [];
+      let promises = [];
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
@@ -224,38 +225,54 @@ export default {
             if (locref) {
               // check if a store with the location ID exists in firebase DB
               let localStore = store;
-              dbRef
-                .child("Store")
-                .child(store.place_id)
-                .child("queueOn")
-                .once("value", function(snap) {
-                  if (snap.val() == 1) {
-                    // if queue is enabled at store, push it into the array of queues
-                    let distanceParams = {
-                      origins: center.lat + "," + center.lng,
-                      destinations: "place_id:" + localStore.place_id,
-                      departure_time: "now",
-                      key: process.env.VUE_APP_DISTANCE_API_KEY,
-                    };
+              promises.push(
+                dbRef
+                  .child("Store")
+                  .child(store.place_id)
+                  .child("queueOn")
+                  .once("value")
+                  .then(function(snap) {
+                    if (snap.val() == 1) {
+                      // if queue is enabled at store, push it into the array of queues
+                      let distanceParams = {
+                        origins: center.lat + "," + center.lng,
+                        destinations: "place_id:" + localStore.place_id,
+                        departure_time: "now",
+                        key: process.env.VUE_APP_DISTANCE_API_KEY,
+                      };
 
-                    axios
-                      .get(process.env.VUE_APP_DISTANCE_URL, {
-                        params: distanceParams,
-                      })
-                      .then((response) => {
-                        queues.push({
-                          location: localStore.name,
-                          position: localStore.geometry.location,
-                          id: localStore.place_id,
-                          time: response.data.rows[0].elements[0].duration.text,
+                      return axios
+                        .get(process.env.VUE_APP_DISTANCE_URL, {
+                          params: distanceParams,
+                        })
+                        .then((response) => {
+                          // Obtains the travel time from the user's location
+                          queues.push({
+                            location: localStore.name,
+                            position: localStore.geometry.location,
+                            id: localStore.place_id,
+                            time:
+                              response.data.rows[0].elements[0].duration.text,
+                          });
                         });
-                      });
-                  }
-                });
+                    }
+                  })
+              );
             }
           }
+          Promise.all(promises).then(() => {
+            // Wait for all promises to return and then sort the queue
+            queues.sort(function(a, b) {
+              // Split the string to obtain the numerical value of time
+              var aTime = parseInt(a.time.split(" "));
+              var bTime = parseInt(b.time.split(" "));
+              // Sort in ascending order
+              return aTime - bTime;
+            });
+            // Assign markers based on intersection of Maps API result & Firebase DB
+            this.markers = queues;
+          });
         });
-      this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
     },
   },
 };
