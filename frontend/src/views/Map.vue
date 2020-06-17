@@ -246,6 +246,7 @@ export default {
                           params: distanceParams,
                         })
                         .then((response) => {
+                          // Obtains the travel time from the user's location
                           queues.push({
                             location: localStore.name,
                             position: localStore.geometry.location,
@@ -261,24 +262,17 @@ export default {
           }
           Promise.all(promises).then(() => {
             // Wait for all promises to return and then sort the queue
-            this.sortQueue(queues);
+            queues.sort(function(a, b) {
+              // Split the string to obtain the numerical value of time
+              var aTime = parseInt(a.time.split(" "));
+              var bTime = parseInt(b.time.split(" "));
+              // Sort in ascending order
+              return aTime - bTime;
+            });
+            // Assign markers based on intersection of Maps API result & Firebase DB
+            this.markers = queues;
           });
         });
-    },
-
-    sortQueue: function(queues) {
-      for (var i = 0; i < queues.length; i++) {
-        for (var j = 0; j < queues.length - 1; j++) {
-          var left = parseInt(queues[j].time.split(" "));
-          var right = parseInt(queues[j + 1].time.split(" "));
-          if (left > right) {
-            var temp = queues[j];
-            queues[j] = queues[j + 1];
-            queues[j + 1] = temp;
-          }
-        }
-      }
-      this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
     },
   },
 };
