@@ -99,7 +99,7 @@ export const database_call = {
     var queueLengthRef = dbRef.child(this.getQueueLengthPath(storeId));
     queueLengthRef.transaction(
       function(queueLength) {
-        return queueLength-1;
+        return queueLength - 1;
       },
       function(error, committed) {
         if (error) {
