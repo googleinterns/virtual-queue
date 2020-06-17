@@ -18,7 +18,7 @@
     </div>
     <div class="columns">
       <div class="column is-one-thirds">
-        <div class="card" style="width: 18rem;">
+        <!-- <div class="card" style="width: 18rem;">
           <div class="card-body">
             <p class="title">Card title</p>
             <p class="card-text">
@@ -27,17 +27,27 @@
             </p>
             <a href="#" class="btn btn-primary">Go somewhere</a>
           </div>
-        </div>
-        <!-- <div class="card">
+        </div> -->
+        <div class="card">
           <header class="card-header">
             <p class="card-header-title">
               Dominoes
             </p>
-            <p class="card-header-title">
-              Dominoes
-            </p>
           </header>
-        </div> -->
+          <div class="card-content">
+          <div class="columns content">
+            <div class="column">
+                <p>Waiting time <br/>
+                <b>10 min</b></p>
+              </div>
+              <div class="column">
+                <p>Travel time <br/>
+                <b>12 min</b></p>
+              </div>
+
+          </div>
+        </div>
+        </div>
         <ul id="places">
           <a
             v-for="(mark, index) in markers"
