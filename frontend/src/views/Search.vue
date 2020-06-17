@@ -12,7 +12,7 @@
               v-model="searchItem"
             />
           </p>
-          <button v-on:click="search">
+          <button v-on:click="search" class="button is-info">
             Search
           </button>
         </div>
@@ -20,59 +20,76 @@
       <br />
     </div>
     <br />
-    <div id="wrapper" class="content">
-      <ul id="places">
-        <!-- Iterates over markers and obtains location names, activeIndex highlights the location of the marker being hovered on -->
-        <li
-          v-for="(mark, index) in markers"
-          :key="mark.location"
-          :ref="`${mark.id}`"
-          :class="{ active: activeIndex === index }"
-          @mouseover="setActive(index)"
-          @mouseout="setInactive"
-        >
-          {{ mark.location }}, {{ mark.time }}
-        </li>
-      </ul>
+    <div class="container">
+    <div class="columns">
+      <div class="column is-one-thirds">
+        <ul id="places">
+          <a
+            v-for="(mark, index) in markers"
+            :key="mark.location"
+            :ref="`${mark.id}`"
+            :class="{ active: activeIndex === index }"
+            @mouseover="setActive(index)"
+            @mouseout="setInactive"
+            class="box"
+            href="https://octoshrimpy.github.io/bulma-o-steps/"
+          >
+            <!-- <div class="rows"> -->
+            <div class="column">
+              <h3 class="title is-4">
+                <strong>{{ mark.location }}</strong>
+              </h3>
+              <h4 class="subtitle is-6">
+                {{ mark.time }}
+              </h4>
+              <!-- </div> -->
+            </div>
+          </a>
+        </ul>
+      </div>
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map
-        :center="center"
-        :zoom="10"
-        id="map"
-        ref="map"
-        @center_changed="updateCenter($event)"
-      >
-        <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
-        <gmap-marker
-          :key="index"
-          v-for="(m, index) in markers"
-          :position="m.position"
-          @click="navigateToQueuePage(m.id)"
-          :icon="getStoreMarker(index)"
-          @mouseover="setActive(index)"
-          @mouseout="setInactive"
-        ></gmap-marker>
-        <gmap-marker
-          :position="markerCenter"
-          :icon="getUserMarker()"
-        ></gmap-marker>
-        <gmap-info-window
-          v-for="(m, index) in markers"
-          :position="m.position"
-          :key="m.id"
-          :opened="activeIndex === index"
-          :options="{
-            pixelOffset: {
-              width: 0,
-              height: -35,
-            },
-          }"
+      <div class="column is-two-thirds">
+        <gmap-map
+          :center="center"
+          :zoom="10"
+          id="map"
+          ref="map"
+          @center_changed="updateCenter($event)"
         >
-          {{ m.location }}
-        </gmap-info-window>
-      </gmap-map>
+          <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
+          <gmap-marker
+            :key="index"
+            v-for="(m, index) in markers"
+            :position="m.position"
+            @click="navigateToQueuePage(m.id)"
+            :icon="getStoreMarker(index)"
+            @mouseover="setActive(index)"
+            @mouseout="setInactive"
+          ></gmap-marker>
+          <gmap-marker
+            :position="markerCenter"
+            :icon="getUserMarker()"
+          ></gmap-marker>
+          <gmap-info-window
+            v-for="(m, index) in markers"
+            :position="m.position"
+            :key="m.id"
+            :opened="activeIndex === index"
+            :options="{
+              pixelOffset: {
+                width: 0,
+                height: -35,
+              },
+            }"
+          >
+            {{ m.location }}
+          </gmap-info-window>
+        </gmap-map>
+      </div>
+    </div>
     </div>
   </div>
+
 </template>
 
 <style scoped>
@@ -89,7 +106,8 @@
 }
 
 #map {
-  width: 70%;
+  /* width: 80%; */
+  /* margin-right: 5%; */
   height: 500px;
 }
 
