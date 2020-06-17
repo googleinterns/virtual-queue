@@ -30,21 +30,25 @@ export const database_call = {
       });
   },
 
-  // Increments the CurrentToken of the store and returns the value to the callBack function
+  // Increments the CurrentToken and QueueLength of the store and returns the value of CurrentToken to the callBack function
   getToken: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
-    var currentTokenRef = dbRef.child(this.getTokenPath(storeId));
-    currentTokenRef.transaction(
-      function(currentToken) {
-        return currentToken + 1;
+    var currentStoreRef = dbRef.child("Store/"+storeId);
+    currentStoreRef.transaction(
+      function(currentStore) {
+        if(currentStore){
+          currentStore.CurrentToken++;
+          currentStore.QueueLength++;
+        }
+        return currentStore;
       },
-      function(error, committed, token) {
+      function(error, committed, store) {
         if (error) {
           console.log(error);
         } else if (!committed) {
           console.log("Commit error: No data is returned");
         } else {
-          callBack(token.val());
+          callBack(store.val().CurrentToken);
         }
       }
     );
@@ -80,24 +84,46 @@ export const database_call = {
     });
   },
 
+  decQueueLength: function(storeId, callBack) {
+    let dbRef = firebase.database().ref();
+    var queueLengthRef = dbRef.child("Store/"+storeId);
+    queueLengthRef.transaction(
+      function(queueLength) {
+        return queueLength--;
+      },
+      function(error, committed) {
+        if (error) {
+          console.log(error);
+        } else if (!committed) {
+          console.log("Commit error: No data is returned");
+        } else {
+          callBack();
+        }
+      }
+    );
+  },
+
   removeFromQueue: function(storeId, userId, storeKey, userKey, callBack) {
     let dbRef = firebase.database().ref();
+    var that = this;
 
-    var updateQueue = {};
-    // Remove User from UsersInQueue
-    updateQueue[this.getUserPath(storeId) + "/" + userKey] = {
-      UserID: null,
-      Token: null,
-    };
+    this.decQueueLength(storeId, function(){
+      var updateQueue = {};
+      // Remove User from UsersInQueue
+      updateQueue[that.getUserPath(storeId) + "/" + userKey] = {
+        UserID: null,
+        Token: null,
+      };
 
-    // Remove Store from SubscribedStoreID
-    updateQueue[this.getStorePath(userId) + "/" + storeKey] = {
-      StoreID: null,
-    };
+      // Remove Store from SubscribedStoreID
+      updateQueue[that.getStorePath(userId) + "/" + storeKey] = {
+        StoreID: null,
+      };
 
-    // Both updates happen in a transaction
-    dbRef.update(updateQueue, function(error) {
-      callBack(error);
+      // Both updates happen in a transaction
+      dbRef.update(updateQueue, function(error) {
+        callBack(error);
+      });
     });
   },
 
