@@ -2,7 +2,12 @@
   <div class="Queue">
     <h1>Welcome to the Queue page</h1>
     <br />
-    <h2>Your UserID is : {{ uid }}</h2>
+    <div v-if="uid">
+      <h2>Your UserID is : {{ uid }}</h2>
+    </div>
+    <div v-else>
+      <h2>Login to enroll to in the queue</h2>
+    </div>
     <br />
     <h2>You are in Store : {{ storeId }}</h2>
     <div v-if="isEnabled">
@@ -23,6 +28,8 @@
       <div v-if="isUserLoaded">
         <div v-if="!isUserEnrolled">
           <h2>The size of the queue is : {{ queueLength }}</h2>
+          <h2>Waiting Time for this queue is : {{ waitingTimeInHoursUnenrolled }}</h2>
+          <h2>Your turn will arrive at: {{ expectedTimeUnenrolled }}</h2>
         </div>
         <div v-else>
           <h2>Your position in the queue is : {{ queuePosition }}</h2>
@@ -37,6 +44,11 @@
         <button :disabled="!isUserEnrolled" @click="exitQueue">
           Leave Queue
         </button>
+      </div>
+      <div v-else-if="!uid">
+        <h2>The size of the queue is : {{ queueLength }}</h2>
+        <h2>Waiting time for this queue is : {{ waitingTimeInHoursUnenrolled }}</h2>
+        <h2>Your turn will arrive at: {{ expectedTimeUnenrolled }}</h2>
       </div>
     </div>
     <div v-else>
@@ -69,7 +81,9 @@ export default {
       startToken: 0,
       graph: [],
       waitingTimeInHours: null,
+      waitingTimeInHoursUnenrolled: null,
       expectedTime: null,
+      expectedTimeUnenrolled: null,
     };
   },
   methods: {
@@ -84,39 +98,54 @@ export default {
     userInit: function() {
       var that = this;
       this.uid = database_call.getUserId();
-      database_call.isUserInQueue(this.storeId, this.uid, function(isEnrolled) {
-        if (isEnrolled) {
-          that.isUserEnrolled = true;
-          database_call.getUserInfo(that.storeId, that.uid, function(
-            queuePosition,
-            currentUserKey,
-            tokenNumber
-          ) {
-            that.queuePosition = queuePosition;
-            that.currentUserKey = currentUserKey;
-            that.tokenNumber = tokenNumber;
-            waiting_time.calculateWaitingTime(
-              that.storeId,
-              that.queuePosition,
-              function(waitingTime) {
-                that.waitingTime = waitingTime;
-                that.waitingTimeInHours = waiting_time.convertToHours(
-                  waitingTime
-                );
-                that.expectedTime = waiting_time.convertTimeToETA(waitingTime);
-              }
-            );
-          });
-          database_call.getCurrentStoreKey(that.storeId, that.uid, function(
-            currentStoreKey
-          ) {
-            that.currentStoreKey = currentStoreKey;
-          });
-        } else {
-          that.isUserEnrolled = false;
-        }
-        that.isUserLoaded = true;
-      });
+      if (this.uid) {
+        database_call.isUserInQueue(this.storeId, this.uid, function(
+          isEnrolled
+        ) {
+          if (isEnrolled) {
+            that.isUserEnrolled = true;
+            database_call.getUserInfo(that.storeId, that.uid, function(
+              queuePosition,
+              currentUserKey,
+              tokenNumber
+            ) {
+              that.queuePosition = queuePosition;
+              that.currentUserKey = currentUserKey;
+              that.tokenNumber = tokenNumber;
+              waiting_time.calculateWaitingTime(
+                that.storeId,
+                that.queuePosition,
+                function(waitingTime) {
+                  that.waitingTime = waitingTime;
+                  that.waitingTimeInHours = waiting_time.convertToHours(
+                    waitingTime
+                  );
+                  that.expectedTime = waiting_time.convertTimeToETA(
+                    waitingTime
+                  );
+                }
+              );
+            });
+            database_call.getCurrentStoreKey(that.storeId, that.uid, function(
+              currentStoreKey
+            ) {
+              that.currentStoreKey = currentStoreKey;
+            });
+          } else {
+            that.isUserEnrolled = false;
+          }
+          that.isUserLoaded = true;
+        });
+      } else {
+        waiting_time.getWaitingTime(that.storeId, function(waitingTime) {
+          that.waitingTimeInHoursUnenrolled = waiting_time.convertToHours(
+            waitingTime
+          );
+          that.expectedTimeUnenrolled = waiting_time.convertTimeToETA(
+            waitingTime
+          );
+        });
+      }
     },
     enterQueue: function() {
       var that = this;
@@ -167,16 +196,33 @@ export default {
     // Incrementing Queue Length
     queueInc: function() {
       this.queueLength++;
+      var that = this;
+      waiting_time.getWaitingTime(that.storeId, function(waitingTime) {
+        that.waitingTimeInHoursUnenrolled = waiting_time.convertToHours(
+          waitingTime
+        );
+        that.expectedTimeUnenrolled = waiting_time.convertTimeToETA(
+          waitingTime
+        );
+      });
     },
     queueDec: function(snap) {
       // Decrementing Queue Length
       this.queueLength--;
+      var that = this;
+      waiting_time.getWaitingTime(that.storeId, function(waitingTime) {
+        that.waitingTimeInHoursUnenrolled = waiting_time.convertToHours(
+          waitingTime
+        );
+        that.expectedTimeUnenrolled = waiting_time.convertTimeToETA(
+          waitingTime
+        );
+      });
 
       // Decrementing Queue Position
       if (this.isUserEnrolled) {
         if (this.currentUserKey > snap.key) {
           this.queuePosition--;
-          var that = this;
           waiting_time.calculateWaitingTime(
             that.storeId,
             that.queuePosition,
