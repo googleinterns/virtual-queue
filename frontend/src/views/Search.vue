@@ -1,108 +1,139 @@
 <template>
-  <div>
-    <h1 class="title is-2">Search for your favourite stores!</h1>
-    <div>
-      <label>
-        <div class="field is-grouped search">
-          <p class="control is-expanded">
-            <input
-              class="input"
-              type="text"
-              placeholder="Pizza places"
-              v-model="searchItem"
-            />
-          </p>
-          <button v-on:click="search">
-            Search
-          </button>
-        </div>
-      </label>
-      <br />
+  <div class="container has-text-centered">
+    <h1 class="title is-2">Store finder</h1>
+
+    <div class="columns is-gapless is-mobile is-centered">
+      <div class="field is-grouped search">
+        <form class="control has-icons-right" @submit="search">
+          <input
+            class="input is-rounded"
+            type="text"
+            v-model="searchItem"
+            style="border-width:2px;"
+            Placeholder="Grocery stores"
+          />
+          <div v-on:click="search">
+            <span class="icon is-medium is-right">
+              <i class="fa fa-search" style="color: black"></i>
+            </span>
+          </div>
+        </form>
+      </div>
     </div>
-    <br />
-    <div id="wrapper" class="content">
-      <ul id="places">
-        <!-- Iterates over markers and obtains location names, activeIndex highlights the location of the marker being hovered on -->
-        <li
-          v-for="(mark, index) in markers"
-          :key="mark.location"
-          :ref="`${mark.id}`"
-          :class="{ active: activeIndex === index }"
-          @mouseover="setActive(index)"
-          @mouseout="setInactive"
-        >
-          {{ mark.location }}, {{ mark.time }}
-        </li>
-      </ul>
+    <div class="columns is-gapless is-mobile is-centered">
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <gmap-map
-        :center="center"
-        :zoom="10"
-        id="map"
-        ref="map"
-        @center_changed="updateCenter($event)"
-      >
-        <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
-        <gmap-marker
-          :key="index"
-          v-for="(m, index) in markers"
-          :position="m.position"
-          @click="navigateToQueuePage(m.id)"
-          :icon="getStoreMarker(index)"
-          @mouseover="setActive(index)"
-          @mouseout="setInactive"
-        ></gmap-marker>
-        <gmap-marker
-          :position="markerCenter"
-          :icon="getUserMarker()"
-        ></gmap-marker>
-        <gmap-info-window
-          v-for="(m, index) in markers"
-          :position="m.position"
-          :key="m.id"
-          :opened="activeIndex === index"
-          :options="{
-            pixelOffset: {
-              width: 0,
-              height: -35,
-            },
-          }"
+      <div class="column is-11">
+        <gmap-map
+          :center="center"
+          :zoom="10"
+          id="map"
+          ref="map"
+          @center_changed="updateCenter($event)"
         >
-          {{ m.location }}
-        </gmap-info-window>
-      </gmap-map>
+          <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
+          <gmap-marker
+            :key="index"
+            v-for="(m, index) in markers"
+            :position="m.position"
+            @click="navigateToQueuePage(m.id)"
+            :icon="getStoreMarker(index)"
+            @mouseover="setActive(index)"
+            @mouseout="setInactive"
+          ></gmap-marker>
+          <gmap-marker
+            :position="markerCenter"
+            :icon="getUserMarker()"
+          ></gmap-marker>
+          <gmap-info-window
+            v-for="(m, index) in markers"
+            :position="m.position"
+            :key="m.id"
+            :opened="activeIndex === index"
+            :options="{
+              pixelOffset: {
+                width: 0,
+                height: -35,
+              },
+            }"
+          >
+            {{ m.location }}
+          </gmap-info-window>
+        </gmap-map>
+      </div>
+    </div>
+    <div class="column">
+      <div v-if="status === 1">
+        Loading..
+      </div>
+      <div v-if="status === -1">
+        No shops found near you!
+      </div>
+      <button
+        class="button is-info is-rounded is-outlined"
+        @click="search"
+        v-if="dragged"
+      >
+        Search this location!
+      </button>
+    </div>
+
+    <div class="task-container column is-mobile is-centered is-one-thirds">
+      <div
+        v-for="(mark, index) in markers"
+        :key="mark.location"
+        :ref="`${mark.id}`"
+        :class="{ active: activeIndex === index }"
+        @mouseover="setActive(index)"
+        @mouseout="setInactive"
+        class="card results"
+        style="margin-bottom: 5px"
+      >
+        <div class="card-content">
+          <div class="media">
+            <div class="media-left">
+              <figure class="image">
+                <img
+                  :src="`${mark.img}`"
+                  alt="Placeholder image"
+                  style="width:70px; height: 70px;"
+                />
+              </figure>
+            </div>
+            <div class="media-content">
+              <p class="title is-6 is-left">{{ mark.location }}</p>
+              <p class="subtitle is-6">
+                Wait: 10 min <br />
+                Travel: {{ mark.time }}
+              </p>
+            </div>
+            <div class="media-right column is-vcentered">
+              <button
+                class="button is-link is-small is-light"
+                @click="navigateToQueuePage(mark.id)"
+              >
+                View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-#wrapper {
-  width: 80%;
-  display: flex;
-  justify-content: center;
+.results {
+  max-width: 450px;
   margin: 0 auto;
 }
-
-#places,
-#map {
-  margin: 2%;
-}
-
-#map {
-  width: 70%;
-  height: 500px;
-}
-
 .active {
-  background-color: #3298dc;
+  border-radius: 16px;
+  box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 }
 
-li {
-  font-size: 25px;
-}
-
-.search {
-  width: 40%;
+#map {
+  height: 200px;
   margin: 0 auto;
 }
 </style>
@@ -127,6 +158,8 @@ export default {
       currentPlace: null,
       searchItem: null,
       windowOpen: false,
+      dragged: false,
+      status: null,
     };
   },
 
@@ -164,6 +197,8 @@ export default {
         lat: event.lat(),
         lng: event.lng(),
       };
+
+      if (this.searchItem != null) this.dragged = true;
     },
 
     navigateToQueuePage(id) {
@@ -190,6 +225,8 @@ export default {
       let center = this.markerCenter;
       var queues = [];
       let promises = [];
+      this.dragged = false;
+      this.status = 1;
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
@@ -217,10 +254,10 @@ export default {
                 dbRef
                   .child("Store")
                   .child(store.place_id)
-                  .child("queueOn")
+                  .child("IsEnabled")
                   .once("value")
                   .then(function(snap) {
-                    if (snap.val() == 1) {
+                    if (snap.val()) {
                       // if queue is enabled at store, push it into the array of queues
                       let distanceParams = {
                         origins: center.lat + "," + center.lng,
@@ -234,13 +271,18 @@ export default {
                           params: distanceParams,
                         })
                         .then((response) => {
-                          // Obtains the travel time from the user's location
                           queues.push({
                             location: localStore.name,
                             position: localStore.geometry.location,
                             id: localStore.place_id,
                             time:
                               response.data.rows[0].elements[0].duration.text,
+                            img:
+                              process.env.VUE_APP_PHOTO_URL +
+                              localStore.photos[0].photo_reference +
+                              "&key=" +
+                              process.env.VUE_APP_MAPS_API_KEY +
+                              "&maxwidth=90",
                           });
                         });
                     }
@@ -250,6 +292,9 @@ export default {
           }
           Promise.all(promises).then(() => {
             // Wait for all promises to return and then sort the queue
+            if (queues.length == 0) this.status = -1;
+            else this.status = 0;
+
             queues.sort(function(a, b) {
               // Split the string to obtain the numerical value of time
               var aTime = parseInt(a.time.split(" "));
@@ -257,6 +302,7 @@ export default {
               // Sort in ascending order
               return aTime - bTime;
             });
+
             // Assign markers based on intersection of Maps API result & Firebase DB
             this.markers = queues;
           });
