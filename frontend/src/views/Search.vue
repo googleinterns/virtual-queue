@@ -62,14 +62,12 @@
       </div>
     </div>
     <div class="column">
-      <span>
-        <i class="fa fa-spinner" aria-hidden="true"></i>
-        Loading
-      </span>
-      <span>
-        <i class="fa fa-frown" aria-hidden="true"></i>
+      <div v-if="status === 1">
+        Loading..
+      </div>
+      <div v-if="status === -1">
         No shops found near you!
-      </span>
+      </div>
       <button
         class="button is-info is-rounded is-outlined"
         @click="search"
@@ -256,10 +254,10 @@ export default {
                 dbRef
                   .child("Store")
                   .child(store.place_id)
-                  .child("queueOn")
+                  .child("IsEnabled")
                   .once("value")
                   .then(function(snap) {
-                    if (snap.val() == 1) {
+                    if (snap.val()) {
                       // if queue is enabled at store, push it into the array of queues
                       let distanceParams = {
                         origins: center.lat + "," + center.lng,
@@ -268,20 +266,24 @@ export default {
                         key: process.env.VUE_APP_DISTANCE_API_KEY,
                       };
 
-                    axios
-                      .get(process.env.VUE_APP_DISTANCE_URL, {
-                        params: distanceParams,
-                      })
-                      .then((response) => {
-                        queues.push({
-                          location: localStore.name,
-                          position: localStore.geometry.location,
-                          id: localStore.place_id,
-                          time: response.data.rows[0].elements[0].duration.text,
-                          img:
-                            "https://maps.googleapis.com/maps/api/place/photo?photoreference=" +
-                            localStore.photos[0].photo_reference +
-                            "&key=AIzaSyB5zdJrg17CL2W9wxiXsLvAdoztzhxMdPo&maxwidth=90",
+                      return axios
+                        .get(process.env.VUE_APP_DISTANCE_URL, {
+                          params: distanceParams,
+                        })
+                        .then((response) => {
+                          queues.push({
+                            location: localStore.name,
+                            position: localStore.geometry.location,
+                            id: localStore.place_id,
+                            time:
+                              response.data.rows[0].elements[0].duration.text,
+                            img:
+                              process.env.VUE_APP_PHOTO_URL +
+                              localStore.photos[0].photo_reference +
+                              "&key=" +
+                              process.env.VUE_APP_MAPS_API_KEY +
+                              "&maxwidth=90",
+                          });
                         });
                     }
                   })
@@ -290,6 +292,9 @@ export default {
           }
           Promise.all(promises).then(() => {
             // Wait for all promises to return and then sort the queue
+            if (queues.length == 0) this.status = -1;
+            else this.status = 0;
+
             queues.sort(function(a, b) {
               // Split the string to obtain the numerical value of time
               var aTime = parseInt(a.time.split(" "));
@@ -297,15 +302,11 @@ export default {
               // Sort in ascending order
               return aTime - bTime;
             });
+
             // Assign markers based on intersection of Maps API result & Firebase DB
             this.markers = queues;
           });
         });
-        
-      // if(queues == 0)
-      //   this.status = -1
-      // this.status = 0;
-      // this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
     },
   },
 };
