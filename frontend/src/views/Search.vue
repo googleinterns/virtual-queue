@@ -16,62 +16,7 @@
         </button>
       </div>
     </div>
-    <div class="columns">
-      <div class="column is-one-thirds">
-        <!-- <div class="card" style="width: 18rem;">
-          <div class="card-body">
-            <p class="title">Card title</p>
-            <p class="card-text">
-              Some quick example text to build on the card title and make up the
-              bulk of the card's content.
-            </p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
-          </div>
-        </div> -->
-        <div class="card">
-          <header class="card-header">
-            <p class="card-header-title">
-              Dominoes
-            </p>
-          </header>
-          <div class="card-content">
-          <div class="columns content">
-            <div class="column">
-                <p>Waiting time <br/>
-                <b>10 min</b></p>
-              </div>
-              <div class="column">
-                <p>Travel time <br/>
-                <b>12 min</b></p>
-              </div>
-
-          </div>
-        </div>
-        </div>
-        <ul id="places">
-          <a
-            v-for="(mark, index) in markers"
-            :key="mark.location"
-            :ref="`${mark.id}`"
-            :class="{ active: activeIndex === index }"
-            @mouseover="setActive(index)"
-            @mouseout="setInactive"
-            class="box"
-            href="https://octoshrimpy.github.io/bulma-o-steps/"
-          >
-            <!-- <div class="rows"> -->
-            <div class="column">
-              <h3 class="title is-4">
-                <strong>{{ mark.location }}</strong>
-              </h3>
-              <h4 class="subtitle is-6">
-                {{ mark.time }}
-              </h4>
-              <!-- </div> -->
-            </div>
-          </a>
-        </ul>
-      </div>
+    <div class="column">
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
       <div class="column is-two-thirds">
         <gmap-map
@@ -112,6 +57,54 @@
         </gmap-map>
       </div>
     </div>
+    <div class="column is-one-thirds">
+      <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            <i class="fas fa-info-circle"></i>
+            Dominoes
+          </p>
+        </header>
+        <div class="card-content">
+          <div class="columns content">
+            <div class="column">
+              <p>
+                Waiting time <br />
+                <b>10 min</b>
+              </p>
+            </div>
+            <div class="column">
+              <p>
+                Travel time <br />
+                <b>12 min</b>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ul id="places">
+        <a
+          v-for="(mark, index) in markers"
+          :key="mark.location"
+          :ref="`${mark.id}`"
+          :class="{ active: activeIndex === index }"
+          @mouseover="setActive(index)"
+          @mouseout="setInactive"
+          class="box"
+          href="https://octoshrimpy.github.io/bulma-o-steps/"
+        >
+          <!-- <div class="rows"> -->
+          <div class="column">
+            <h3 class="title is-4">
+              <strong>{{ mark.location }}</strong>
+            </h3>
+            <h4 class="subtitle is-6">
+              {{ mark.time }}
+            </h4>
+            <!-- </div> -->
+          </div>
+        </a>
+      </ul>
     </div>
   </div>
 </template>
@@ -122,7 +115,7 @@
 }
 
 #map {
-  height: 500px;
+  height: 180px;
 }
 </style>
 
