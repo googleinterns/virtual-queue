@@ -1,51 +1,56 @@
 <template>
   <div id="app">
-    <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+    <nav class="navbar is-light" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
+        <a class="navbar-item">
+          <img src="./assets/google-icon.png" height="28" />
+        </a>
         <a
           role="button"
           class="navbar-burger burger"
           aria-label="menu"
           aria-expanded="false"
           data-target="navbarBasicExample"
+          @click="isOpen = !isOpen"
+          v-bind:class="{ 'is-active': isOpen }"
         >
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
         </a>
       </div>
-      <div id="navbarBasicExample" class="navbar-menu">
+      <div
+        id="navbarBasicExample"
+        class="navbar-menu"
+        v-bind:class="{ 'is-active': isOpen }"
+      >
         <div class="navbar-start">
-          <a class="navbar-item">
-            <router-link class="button" :to="{ name: 'Home' }"
-              >Home</router-link
-            >
+          <a class="navbar-item" @click="isOpen = !isOpen">
+            <router-link :to="{ name: 'Home' }">
+              Home
+            </router-link>
           </a>
-          <a class="navbar-item">
-            <router-link class="button" :to="{ name: 'Search' }"
-              >Search</router-link
-            >
+          <a class="navbar-item" @click="isOpen = !isOpen">
+            <router-link :to="{ name: 'Search' }">
+              Search
+            </router-link>
           </a>
+          <hr class="navbar-divider">
         </div>
         <div class="navbar-end">
-          <div class="navbar-item" v-if="isLoggedIn">
-            <a class="button is-light">UserId: {{ userId }}</a>
-          </div>
-          <div class="navbar-item">
-            <div class="buttons">
-              <div v-if="!isLoggedIn">
-                <router-link class="button is-light" :to="{ name: 'Login' }"
-                  >Login</router-link
-                >
-                <router-link class="button is-light" :to="{ name: 'SignUp' }"
-                  >Sign Up</router-link
-                >
-              </div>
-              <div v-else>
-                <a class="button is-light" @click="logout">Logout</a>
-              </div>
-            </div>
-          </div>
+          <a class="navbar-item" v-if="isLoggedIn" @click="isOpen = !isOpen">
+            <a @click="logout">Logout</a>
+          </a>
+          <a class="navbar-item" v-if="!isLoggedIn" @click="isOpen = !isOpen">
+            <router-link :to="{ name: 'Login' }">
+              Login
+            </router-link>
+          </a>
+          <a class="navbar-item" v-if="!isLoggedIn" @click="isOpen = !isOpen">
+            <router-link :to="{ name: 'SignUp' }">
+              Sign Up
+            </router-link>
+          </a>
         </div>
       </div>
     </nav>
@@ -61,6 +66,7 @@ export default {
     return {
       isLoggedIn: false,
       userId: null,
+      isOpen: false,
     };
   },
   methods: {
@@ -85,16 +91,18 @@ export default {
 </script>
 
 <style>
-#app {
+ #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
 }
+
 #nav {
   padding: 30px;
 }
+
 #nav a {
   font-weight: bold;
   color: #2c3e50;
@@ -105,11 +113,5 @@ export default {
 .navbar {
   margin-bottom: 5%;
   padding: px;
-}
-.navbar-brand {
-  margin-left: 5%;
-}
-.navbar-end {
-  margin-right: 5%;
 }
 </style>
