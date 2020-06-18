@@ -1,22 +1,26 @@
 <template>
   <div class="container has-text-centered">
     <h1 class="title is-2">Store finder</h1>
+
     <div class="columns is-gapless is-mobile is-centered">
       <div class="field is-grouped search">
-        <p class="control">
+        <form class="control has-icons-right" @submit="search">
           <input
-            class="input"
+            class="input is-rounded"
             type="text"
-            placeholder="Grocery stores nearby"
             v-model="searchItem"
+            style="border-width:2px;"
+            Placeholder="Grocery stores"
           />
-        </p>
-        <button v-on:click="search" class="button is-info">
-          Search
-        </button>
+          <div v-on:click="search">
+            <span class="icon is-medium is-right">
+              <i class="fa fa-search" style="color: black"></i>
+            </span>
+          </div>
+        </form>
       </div>
     </div>
-    <div class="column">
+    <div class="columns is-gapless is-mobile is-centered">
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
       <div class="column is-two-thirds">
         <gmap-map
@@ -57,16 +61,27 @@
         </gmap-map>
       </div>
     </div>
+    <div class="column">
+      <button
+        class="button is-info is-rounded is-outlined"
+        @click="search"
+        v-if="dragged"
+      >
+        Search from here!
+      </button>
+    </div>
 
-    <div class="column is-one-thirds">
-      <div v-for="(mark, index) in markers"
-          :key="mark.location"
-          :ref="`${mark.id}`"
-          :class="{ active: activeIndex === index }"
-          @mouseover="setActive(index)"
-          @mouseout="setInactive"
-          class="card" style="margin-bottom: 5px"
-        >
+    <div class="task-container column is-mobile is-centered is-one-thirds">
+      <div
+        v-for="(mark, index) in markers"
+        :key="mark.location"
+        :ref="`${mark.id}`"
+        :class="{ active: activeIndex === index }"
+        @mouseover="setActive(index)"
+        @mouseout="setInactive"
+        class="card results"
+        style="margin-bottom: 5px"
+      >
         <div class="card-content">
           <div class="media">
             <div class="media-left">
@@ -78,21 +93,20 @@
                 />
               </figure>
             </div>
-            <div class="media-center">
-              <div class="level-left">
-                <div class="level-item">
-                  <p class="title is-6 is-left">{{mark.location}}</p>
-                </div>
-                <div class="level-item">
-                  <p class="subtitle is-6">
-                    Wait: 10 min <br />
-                    Travel: {{mark.time}}
-                  </p>
-                </div>
-              </div>
+            <div class="media-content">
+              <p class="title is-6 is-left">{{ mark.location }}</p>
+              <p class="subtitle is-6">
+                Wait: 10 min <br />
+                Travel: {{ mark.time }}
+              </p>
             </div>
             <div class="media-right column is-vcentered">
-              <button class="button is-info">View</button>
+              <button
+                class="button is-link is-small is-light"
+                @click="navigateToQueuePage(mark.id)"
+              >
+                View
+              </button>
             </div>
           </div>
         </div>
@@ -102,18 +116,19 @@
 </template>
 
 <style scoped>
+
+.results{
+  max-width: 450px;
+  margin: 0 auto;
+}
 .active {
-  background-color: #3298dc;
+  border-radius: 16px;
+  box-shadow: 0 0 10px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
 }
 
 #map {
   height: 200px;
-}
-
-div.sticky {
-  position: -webkit-sticky; /* Safari */
-  position: sticky;
-  top: 0;
 }
 </style>
 
@@ -137,6 +152,7 @@ export default {
       currentPlace: null,
       searchItem: null,
       windowOpen: false,
+      dragged: false,
     };
   },
 
@@ -174,6 +190,8 @@ export default {
         lat: event.lat(),
         lng: event.lng(),
       };
+
+      if (this.searchItem != null) this.dragged = true;
     },
 
     navigateToQueuePage(id) {
@@ -200,6 +218,7 @@ export default {
       let center = this.markerCenter;
       var queues = [];
       let promises = [];
+      this.dragged = false;
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
@@ -249,7 +268,10 @@ export default {
                           position: localStore.geometry.location,
                           id: localStore.place_id,
                           time: response.data.rows[0].elements[0].duration.text,
-                          img: "https://maps.googleapis.com/maps/api/place/photo?photoreference="+localStore.photos[0].photo_reference+"&key=AIzaSyB5zdJrg17CL2W9wxiXsLvAdoztzhxMdPo&maxwidth=90",
+                          img:
+                            "https://maps.googleapis.com/maps/api/place/photo?photoreference=" +
+                            localStore.photos[0].photo_reference +
+                            "&key=AIzaSyB5zdJrg17CL2W9wxiXsLvAdoztzhxMdPo&maxwidth=90",
                         });
                     }
                   })
