@@ -57,54 +57,46 @@
         </gmap-map>
       </div>
     </div>
+
     <div class="column is-one-thirds">
-      <div class="card">
-        <header class="card-header">
-          <p class="card-header-title">
-            <i class="fas fa-info-circle"></i>
-            Dominoes
-          </p>
-        </header>
-        <div class="card-content">
-          <div class="columns content">
-            <div class="column">
-              <p>
-                Waiting time <br />
-                <b>10 min</b>
-              </p>
-            </div>
-            <div class="column">
-              <p>
-                Travel time <br />
-                <b>12 min</b>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ul id="places">
-        <a
-          v-for="(mark, index) in markers"
+      <div v-for="(mark, index) in markers"
           :key="mark.location"
           :ref="`${mark.id}`"
           :class="{ active: activeIndex === index }"
           @mouseover="setActive(index)"
           @mouseout="setInactive"
-          class="box"
-          href="https://octoshrimpy.github.io/bulma-o-steps/"
+          class="card" style="margin-bottom: 5px"
         >
-          <!-- <div class="rows"> -->
-          <div class="column">
-            <h3 class="title is-4">
-              <strong>{{ mark.location }}</strong>
-            </h3>
-            <h4 class="subtitle is-6">
-              {{ mark.time }}
-            </h4>
-            <!-- </div> -->
+        <div class="card-content">
+          <div class="media">
+            <div class="media-left">
+              <figure class="image">
+                <img
+                  :src="`${mark.img}`"
+                  alt="Placeholder image"
+                  style="width:70px; height: 70px;"
+                />
+              </figure>
+            </div>
+            <div class="media-center">
+              <div class="level-left">
+                <div class="level-item">
+                  <p class="title is-6 is-left">{{mark.location}}</p>
+                </div>
+                <div class="level-item">
+                  <p class="subtitle is-6">
+                    Wait: 10 min <br />
+                    Travel: {{mark.time}}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="media-right column is-vcentered">
+              <button class="button is-info">View</button>
+            </div>
           </div>
-        </a>
-      </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -115,7 +107,13 @@
 }
 
 #map {
-  height: 180px;
+  height: 200px;
+}
+
+div.sticky {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
 }
 </style>
 
@@ -241,19 +239,17 @@ export default {
                         key: process.env.VUE_APP_DISTANCE_API_KEY,
                       };
 
-                      return axios
-                        .get(process.env.VUE_APP_DISTANCE_URL, {
-                          params: distanceParams,
-                        })
-                        .then((response) => {
-                          // Obtains the travel time from the user's location
-                          queues.push({
-                            location: localStore.name,
-                            position: localStore.geometry.location,
-                            id: localStore.place_id,
-                            time:
-                              response.data.rows[0].elements[0].duration.text,
-                          });
+                    axios
+                      .get(process.env.VUE_APP_DISTANCE_URL, {
+                        params: distanceParams,
+                      })
+                      .then((response) => {
+                        queues.push({
+                          location: localStore.name,
+                          position: localStore.geometry.location,
+                          id: localStore.place_id,
+                          time: response.data.rows[0].elements[0].duration.text,
+                          img: "https://maps.googleapis.com/maps/api/place/photo?photoreference="+localStore.photos[0].photo_reference+"&key=AIzaSyB5zdJrg17CL2W9wxiXsLvAdoztzhxMdPo&maxwidth=90",
                         });
                     }
                   })
