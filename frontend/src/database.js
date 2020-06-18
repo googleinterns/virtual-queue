@@ -294,14 +294,9 @@ export const database_call = {
     dbRef.child(this.getUserPath(storeId)).on("value", callBack);
   },
 
-  // Logout current user and reroute to login page
+  // Logout current user
   logoutUser: function() {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        this.$router.replace("login");
-      });
+    firebase.auth().signOut();
   },
 
   // Set listener to listen for changes in login state and return userId

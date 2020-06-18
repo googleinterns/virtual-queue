@@ -17,21 +17,29 @@
       <div id="navbarBasicExample" class="navbar-menu">
         <div class="navbar-start">
           <a class="navbar-item">
-            <router-link class="button" :to="{ name: 'Owner' }">Home</router-link>
+            <router-link class="button" :to="{ name: 'Home' }"
+              >Home</router-link
+            >
           </a>
           <a class="navbar-item">
-            <router-link class="button" :to="{ name: 'Maps' }">Search</router-link>
+            <router-link class="button" :to="{ name: 'Search' }"
+              >Search</router-link
+            >
           </a>
         </div>
         <div class="navbar-end">
           <div class="navbar-item" v-if="isLoggedIn">
-            <a class="button is-light" >UserId: {{userId}}</a>
+            <a class="button is-light">UserId: {{ userId }}</a>
           </div>
           <div class="navbar-item">
             <div class="buttons">
               <div v-if="!isLoggedIn">
-                <router-link class="button is-light" :to="{ name: 'Login' }">Login</router-link>
-                <router-link class="button is-light" :to="{ name: 'SignUp' }">Sign Up</router-link>
+                <router-link class="button is-light" :to="{ name: 'Login' }"
+                  >Login</router-link
+                >
+                <router-link class="button is-light" :to="{ name: 'SignUp' }"
+                  >Sign Up</router-link
+                >
               </div>
               <div v-else>
                 <a class="button is-light" @click="logout">Logout</a>
@@ -58,6 +66,7 @@ export default {
   methods: {
     logout: function() {
       database_call.logoutUser();
+      this.$router.push({ name: "Search" });
     },
     setUserId: function(user) {
       if (user) {

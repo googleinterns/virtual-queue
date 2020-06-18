@@ -25,12 +25,13 @@ export default {
   },
   methods: {
     signup: function() {
+      var that = this;
       firebase
         .auth()
         .createUserWithEmailAndPassword(this.email, this.password)
         .then(
           () => {
-            this.$router.replace("map");
+            that.$router.push({ name: "Home" });
             alert("Your account has been created!");
           },
           (err) => {
