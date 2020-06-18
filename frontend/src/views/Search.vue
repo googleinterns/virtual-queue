@@ -72,9 +72,6 @@
         </gmap-info-window>
       </gmap-map>
     </div>
-    <button @click="logout">Logout</button>
-    <br /><br />
-    <p><router-link :to="{ name: 'Owner' }">For Owners</router-link></p>
   </div>
 </template>
 
@@ -118,7 +115,7 @@ import VueAxios from "vue-axios";
 Vue.use(VueAxios, axios);
 
 export default {
-  name: "Map",
+  name: "Search",
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     return {
@@ -138,15 +135,6 @@ export default {
   },
 
   methods: {
-    logout: function() {
-      firebase
-        .auth()
-        .signOut()
-        .then(() => {
-          this.$router.replace("login");
-        });
-    },
-
     setActive(index) {
       this.activeIndex = index;
       this.windowOpen = true;
