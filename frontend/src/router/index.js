@@ -4,8 +4,7 @@ import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 import Login from "../views/Login.vue";
 import SignUp from "../views/SignUp.vue";
-import Maps from "../views/Map.vue";
-import Owner from "../views/Owner.vue";
+import Search from "../views/Search.vue";
 import Queue from "../views/Queue.vue";
 
 Vue.use(VueRouter);
@@ -30,9 +29,9 @@ const routes = [
     component: SignUp,
   },
   {
-    path: "/map",
-    name: "Maps",
-    component: Maps,
+    path: "/search",
+    name: "Search",
+    component: Search,
   },
   {
     path: "/queue/:StoreId",
@@ -40,13 +39,8 @@ const routes = [
     component: Queue,
   },
   {
-    path: "/owner",
-    name: "Owner",
-    component: Owner,
-  },
-  {
     path: "*",
-    redirect: "/login",
+    redirect: "/search",
   },
 ];
 

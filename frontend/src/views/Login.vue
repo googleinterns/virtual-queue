@@ -34,12 +34,13 @@ export default {
   },
   methods: {
     login: function() {
+      var that = this;
       firebase
         .auth()
         .signInWithEmailAndPassword(this.email, this.password)
         .then(
           () => {
-            this.$router.replace("map");
+            that.$router.push({ name: 'Home' });
           },
           (err) => {
             alert("Oops," + err.message);
@@ -48,11 +49,12 @@ export default {
     },
     googleSignIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
+      var that = this;
       firebase
         .auth()
         .signInWithPopup(provider)
         .then(() => {
-          this.$router.replace("home");
+          that.$router.push({ name: 'Home' });
         })
         .catch((err) => {
           alert("Oops. " + err.message);

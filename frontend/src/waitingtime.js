@@ -46,7 +46,9 @@ export const waiting_time = {
   // Adds waiting time to current time and returns in LTS format
   convertTimeToETA(waitingTime) {
     var now = moment();
-    return moment(now).add(waitingTime, "minutes").format('LT');
+    return moment(now)
+      .add(waitingTime, "minutes")
+      .format("LT");
   },
 
   // Converts minutes to ${hours}hours ${minutes}minutes
