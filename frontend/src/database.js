@@ -200,6 +200,18 @@ export const database_call = {
     });
   },
 
+  // Get the array of SubscribedStoreIDs of user
+  getSubscribedStoreID: function(userId, callBack) {
+    let dbRef = firebase.database().ref();
+    dbRef.child(this.getStorePath(userId)).once("value", (snap) => {
+      let storeIds = [];
+      snap.forEach(function(childSnap) {
+        storeIds.push(childSnap.val().StoreID);
+      });
+      callBack(storeIds);
+    });
+  },
+
   // Set IsEnabled value of store
   toggleQueue: function(storeId, isEnabled, callBack) {
     var storeRef = firebase
