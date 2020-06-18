@@ -4,10 +4,12 @@ import App from "./App.vue";
 import router from "./router";
 import * as VueGoogleMaps from "vue2-google-maps";
 import "./../node_modules/bulma/css/bulma.css";
-import Chartkick from "vue-chartkick";
-import Chart from "chart.js";
+import HighchartsVue from "highcharts-vue";
+import Highcharts from "highcharts";
+import Annotations from "highcharts/modules/annotations.js";
 
-Vue.use(Chartkick.use(Chart));
+Vue.use(HighchartsVue);
+Annotations(Highcharts);
 
 Vue.config.productionTip = false;
 let app = "";
