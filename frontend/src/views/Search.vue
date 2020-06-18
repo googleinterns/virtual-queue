@@ -22,7 +22,7 @@
     </div>
     <div class="columns is-gapless is-mobile is-centered">
       <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <div class="column is-two-thirds">
+      <div class="column is-11">
         <gmap-map
           :center="center"
           :zoom="10"
@@ -62,12 +62,20 @@
       </div>
     </div>
     <div class="column">
+      <span>
+        <i class="fa fa-spinner" aria-hidden="true"></i>
+        Loading
+      </span>
+      <span>
+        <i class="fa fa-frown" aria-hidden="true"></i>
+        No shops found near you!
+      </span>
       <button
         class="button is-info is-rounded is-outlined"
         @click="search"
         v-if="dragged"
       >
-        Search from here!
+        Search this location!
       </button>
     </div>
 
@@ -116,19 +124,19 @@
 </template>
 
 <style scoped>
-
-.results{
+.results {
   max-width: 450px;
   margin: 0 auto;
 }
 .active {
   border-radius: 16px;
-  box-shadow: 0 0 10px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 }
 
 #map {
   height: 200px;
+  margin: 0 auto;
 }
 </style>
 
@@ -153,6 +161,7 @@ export default {
       searchItem: null,
       windowOpen: false,
       dragged: false,
+      status: null,
     };
   },
 
@@ -219,6 +228,7 @@ export default {
       var queues = [];
       let promises = [];
       this.dragged = false;
+      this.status = 1;
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
@@ -291,6 +301,11 @@ export default {
             this.markers = queues;
           });
         });
+        
+      // if(queues == 0)
+      //   this.status = -1
+      // this.status = 0;
+      // this.markers = queues; // Assign markers based on intersection of Maps API result & Firebase DB
     },
   },
 };
