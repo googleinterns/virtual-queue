@@ -30,7 +30,7 @@ export default {
         .createUserWithEmailAndPassword(this.email, this.password)
         .then(
           () => {
-            this.$router.replace("home");
+            this.$router.replace("map");
             alert("Your account has been created!");
           },
           (err) => {

@@ -293,4 +293,21 @@ export const database_call = {
     let dbRef = firebase.database().ref();
     dbRef.child(this.getUserPath(storeId)).on("value", callBack);
   },
+
+  // Logout current user and reroute to login page
+  logoutUser: function() {
+    firebase
+      .auth()
+      .signOut()
+      .then(() => {
+        this.$router.replace("login");
+      });
+  },
+
+  // Set listener to listen for changes in login state and return userId
+  setLoginListener: function(callBack) {
+    firebase.auth().onAuthStateChanged(function(userId) {
+      callBack(userId);
+    });
+  },
 };
