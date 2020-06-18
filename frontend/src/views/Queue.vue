@@ -27,7 +27,8 @@
         <div v-else>
           <h2>Your position in the queue is : {{ queuePosition }}</h2>
           <h2>Your token number is : {{ tokenNumber }}</h2>
-          <h2>Your waiting time is : {{ waitingTime }}</h2>
+          <h2>Your waiting time is : {{ waitingTimeInHours }}</h2>
+          <h2>Your turn will arrive at: {{expectedTime}}</h2>
         </div>
         <button :disabled="isUserEnrolled" @click="enterQueue">
           Enter Queue
@@ -68,6 +69,8 @@ export default {
       waitingTime: 0,
       startToken: 0,
       graph: [],
+      waitingTimeInHours: null,
+      expectedTime: null,
     };
   },
   methods: {
@@ -98,6 +101,8 @@ export default {
               that.queuePosition,
               function(waitingTime) {
                 that.waitingTime = waitingTime;
+                that.waitingTimeInHours = waiting_time.convertToHours(waitingTime);
+                that.expectedTime = waiting_time.convertTimeToETA(waitingTime);
               }
             );
           });
@@ -133,6 +138,8 @@ export default {
             that.queuePosition,
             function(waitingTime) {
               that.waitingTime = waitingTime;
+              that.waitingTimeInHours = waiting_time.convertToHours(waitingTime);
+              that.expectedTime = waiting_time.convertTimeToETA(waitingTime);
             }
           );
         }
@@ -172,6 +179,8 @@ export default {
             that.queuePosition,
             function(waitingTime) {
               that.waitingTime = waitingTime;
+              that.waitingTimeInHours = waiting_time.convertToHours(waitingTime);
+              that.expectedTime = waiting_time.convertTimeToETA(waitingTime);
             }
           );
         }

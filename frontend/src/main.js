@@ -40,3 +40,5 @@ Vue.use(VueGoogleMaps, {
     key: process.env.VUE_APP_MAPS_API_KEY,
   }
 });
+
+Vue.use(require('vue-moment'));

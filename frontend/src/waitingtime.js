@@ -1,4 +1,5 @@
 import { database_call } from "./database.js";
+import moment from "moment";
 
 export const waiting_time = {
   // Returns the expected waiting time for a user enrolled in the queue
@@ -24,7 +25,7 @@ export const waiting_time = {
     var queue = store.UsersInQueue,
       queuePosition = 1;
     queue.forEach(function(user) {
-      if (userId == user.UserID) {
+      if (userId === user.UserID) {
         return true;
       }
       queuePosition++;
@@ -40,5 +41,23 @@ export const waiting_time = {
         callBack(waitingTime);
       } else callBack(0);
     });
+  },
+
+  // Adds waiting time to current time and returns in LTS format
+  convertTimeToETA(waitingTime) {
+    var now = moment();
+    return moment(now).add(waitingTime, "minutes").format('LT');
+  },
+
+  // Converts minutes to ${hours}hours ${minutes}minutes
+  convertToHours(num) {
+    var hours = Math.floor(num / 60);
+    var minutes = num % 60;
+    if (hours) {
+      if (minutes) return hours + " hours " + minutes + " minutes";
+      else return hours + " hours";
+    } else {
+      return minutes + " minutes";
+    }
   },
 };
