@@ -17,21 +17,25 @@
       <div id="navbarBasicExample" class="navbar-menu">
         <div class="navbar-start">
           <a class="navbar-item">
-            Home
+            <router-link class="button" :to="{ name: 'Owner' }">Home</router-link>
           </a>
           <a class="navbar-item">
-            Queues
+            <router-link class="button" :to="{ name: 'Maps' }">Search</router-link>
           </a>
         </div>
         <div class="navbar-end">
+          <div class="navbar-item" v-if="isLoggedIn">
+            <a class="button is-light" >UserId: {{userId}}</a>
+          </div>
           <div class="navbar-item">
             <div class="buttons">
-              <a class="button is-light">
-                Sign up
-              </a>
-              <a class="button is-light">
-                Log in
-              </a>
+              <div v-if="!isLoggedIn">
+                <router-link class="button is-light" :to="{ name: 'Login' }">Login</router-link>
+                <router-link class="button is-light" :to="{ name: 'SignUp' }">Sign Up</router-link>
+              </div>
+              <div v-else>
+                <a class="button is-light" @click="logout">Logout</a>
+              </div>
             </div>
           </div>
         </div>
@@ -40,6 +44,36 @@
     <router-view />
   </div>
 </template>
+
+<script>
+import { database_call } from "./database.js";
+export default {
+  name: "nav-bar",
+  data() {
+    return {
+      isLoggedIn: false,
+      userId: null,
+    };
+  },
+  methods: {
+    logout: function() {
+      database_call.logoutUser();
+    },
+    setUserId: function(user) {
+      if (user) {
+        this.userId = user.uid;
+        this.isLoggedIn = true;
+      } else {
+        this.userId = null;
+        this.isLoggedIn = false;
+      }
+    },
+  },
+  created() {
+    database_call.setLoginListener(this.setUserId);
+  },
+};
+</script>
 
 <style>
 #app {
