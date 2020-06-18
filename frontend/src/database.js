@@ -5,18 +5,23 @@ const USER_ID_STRING = "UserID";
 const TOKEN_ID = "Token";
 
 export const database_call = {
+  // Returns the string "TOKEN_ID"
   getTokenIdField: function() {
     return TOKEN_ID;
   },
 
+  // Returns the string "USER_ID_STRING"
+  getUserIdField: function() {
+    return USER_ID_STRING;
+  },
+
   // Returns userId of currently loggged in user, returns null if user not logged in
   getUserId: function() {
-    if (firebase.auth().currentUser){
+    if (firebase.auth().currentUser) {
       return firebase.auth().currentUser.uid;
-    } 
-    else{
+    } else {
       return null;
-    } 
+    }
   },
 
   // Returns whether user with userId is enrolled in store with storeId
