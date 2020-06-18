@@ -40,7 +40,7 @@ export default {
         .signInWithEmailAndPassword(this.email, this.password)
         .then(
           () => {
-            that.$router.push({ name: 'Home' });
+            that.$router.push({ name: "Home" });
           },
           (err) => {
             alert("Oops," + err.message);
@@ -54,7 +54,7 @@ export default {
         .auth()
         .signInWithPopup(provider)
         .then(() => {
-          that.$router.push({ name: 'Home' });
+          that.$router.push({ name: "Home" });
         })
         .catch((err) => {
           alert("Oops. " + err.message);

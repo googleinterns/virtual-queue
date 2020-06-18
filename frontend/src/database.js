@@ -9,9 +9,14 @@ export const database_call = {
     return TOKEN_ID;
   },
 
-  // Returns userId of currently loggged in user
+  // Returns userId of currently loggged in user, returns null if user not logged in
   getUserId: function() {
-    return firebase.auth().currentUser.uid;
+    if (firebase.auth().currentUser){
+      return firebase.auth().currentUser.uid;
+    } 
+    else{
+      return null;
+    } 
   },
 
   // Returns whether user with userId is enrolled in store with storeId
