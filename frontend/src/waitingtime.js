@@ -63,10 +63,10 @@ export const waiting_time = {
     var hours = Math.floor(num / 60);
     var minutes = num % 60;
     if (hours) {
-      if (minutes) return hours + " hours " + minutes + " minutes";
-      else return hours + " hours";
+      if (minutes) return hours + " hrs " + minutes + " mins";
+      else return hours + " hrs";
     } else {
-      return minutes + " minutes";
+      return minutes + " mins";
     }
   },
 };

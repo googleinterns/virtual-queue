@@ -102,8 +102,8 @@
             <div class="media-content">
               <p class="title is-6 is-left">{{ mark.location }}</p>
               <p class="subtitle is-6">
-                Wait: {{ convertWaitTime(mark.waitingTime) }} <br />
-                Travel: {{ mark.travelTime }}
+                Wait: {{ convertToHours(mark.waitingTime) }} <br />
+                Travel: {{ mark.travelTime }} mins
               </p>
             </div>
             <div class="media-right column is-vcentered">
@@ -210,17 +210,6 @@ export default {
       this.currentPlace = place;
     },
 
-    convertWaitTime(num) {
-      var hours = Math.floor(num / 60);
-      var minutes = num % 60;
-      if (hours) {
-        if (minutes) return hours + " hrs " + minutes + " mins";
-        else return hours + " hrs";
-      } else {
-        return minutes + " mins";
-      }
-    },
-
     geolocate: function() {
       // Gets user's location and centers the map around that
       navigator.geolocation.getCurrentPosition((position) => {
@@ -231,6 +220,10 @@ export default {
 
         this.markerCenter = this.center;
       });
+    },
+
+    convertToHours(num) {
+      return waiting_time.convertToHours(num);
     },
 
     search: function() {
@@ -259,7 +252,7 @@ export default {
             var store = response.data.results[i];
             let dbRef = firebase.database().ref();
             var locref = dbRef.child("Store").child(store.place_id);
-            // check if a store with the location ID exists in firebase DB
+            // check if a store with obtained location ID exists in firebase DB
             if (locref) {
               let localStore = store;
               promises.push(
@@ -270,7 +263,7 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      // If queue is enabled, obtain remaining fields of information
+                      // If queue is enabled at the store, obtain remaining fields of information
                       let distanceParams = {
                         origins: center.lat + "," + center.lng,
                         destinations: "place_id:" + localStore.place_id,
@@ -285,7 +278,7 @@ export default {
                         .then((response) => {
                           let imgVal =
                             "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
-                          // Checks if location has photos and assigns them accordingly. If not, uses default image.
+                          // Checks if location has an associated photo and assigns it accordingly. If not, uses default image.
                           if (localStore.photos)
                             imgVal =
                               process.env.VUE_APP_PHOTO_URL +
@@ -302,9 +295,12 @@ export default {
                                 location: localStore.name,
                                 position: localStore.geometry.location,
                                 id: localStore.place_id,
-                                travelTime:
-                                  response.data.rows[0].elements[0].duration
-                                    .text,
+                                // Stores the numerical value of travel time by splitting and parsing the string returned by Maps API
+                                travelTime: parseInt(
+                                  response.data.rows[0].elements[0].duration.text.split(
+                                    " "
+                                  )
+                                ),
                                 waitingTime: waitingTime,
                                 img: imgVal,
                               });
@@ -321,18 +317,11 @@ export default {
             else this.status = 0;
 
             queues.sort(function(a, b) {
-              // Split the string to obtain the numerical value of wait & travel time and add the two
-              // Delay is calculated as the max duration of wait and travel time
-              var aTotalTime = Math.max(
-                parseInt(a.travelTime.split(" ")),
-                a.waitingTime
-              );
-              var bTotalTime = Math.max(
-                parseInt(b.travelTime.split(" ")),
-                b.waitingTime
-              );
-              // Sort in ascending order
-              return aTotalTime - bTotalTime;
+              // User serve time is calculated as the maximum value between travel / waiting time as that is the time estimate for when the user's turn will come
+              var aTime = Math.max(a.travelTime, a.waitingTime);
+              var bTime = Math.max(b.travelTime, b.waitingTime);
+              // Sort in ascending order of time
+              return aTime - bTime;
             });
             this.markers = queues;
           });
