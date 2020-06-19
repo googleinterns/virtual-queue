@@ -102,8 +102,8 @@
             <div class="media-content">
               <p class="title is-6 is-left">{{ mark.location }}</p>
               <p class="subtitle is-6">
-                Wait: 10 min <br />
-                Travel: {{ mark.time }}
+                Wait: {{mark.waitingTime}} <br />
+                Travel: {{ mark.travelTime }}
               </p>
             </div>
             <div class="media-right column is-vcentered">
@@ -143,6 +143,7 @@ import Vue from "vue";
 import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
+import { waiting_time } from "../waitingtime";
 Vue.use(VueAxios, axios);
 
 export default {
@@ -271,19 +272,32 @@ export default {
                           params: distanceParams,
                         })
                         .then((response) => {
-                          queues.push({
-                            location: localStore.name,
-                            position: localStore.geometry.location,
-                            id: localStore.place_id,
-                            time:
-                              response.data.rows[0].elements[0].duration.text,
-                            img:
+                          let imgVal =
+                            "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
+                          // Checks if location has photos and assigns them accordingly. If not, uses default image.
+                          if (localStore.photos)
+                            imgVal =
                               process.env.VUE_APP_PHOTO_URL +
                               localStore.photos[0].photo_reference +
                               "&key=" +
                               process.env.VUE_APP_MAPS_API_KEY +
-                              "&maxwidth=90",
-                          });
+                              "&maxwidth=90";
+
+                          waiting_time.getWaitingTime(
+                            localStore.place_id,
+                            function(waitingTime) {
+                              queues.push({
+                                location: localStore.name,
+                                position: localStore.geometry.location,
+                                id: localStore.place_id,
+                                travelTime:
+                                  response.data.rows[0].elements[0].duration
+                                    .text,
+                                waitingTime: waitingTime,
+                                img: imgVal,
+                              });
+                            }
+                          );
                         });
                     }
                   })
@@ -296,11 +310,11 @@ export default {
             else this.status = 0;
 
             queues.sort(function(a, b) {
-              // Split the string to obtain the numerical value of time
-              var aTime = parseInt(a.time.split(" "));
-              var bTime = parseInt(b.time.split(" "));
+              // Split the string to obtain the numerical value of wait & travel time and add the two
+              var aTotalTime = parseInt(a.travelTime.split(" ")) + a.waitingTime;
+              var bTotalTime = parseInt(b.travelTime.split(" ")) + b.waitingTime;
               // Sort in ascending order
-              return aTime - bTime;
+              return aTotalTime - bTotalTime;
             });
 
             // Assign markers based on intersection of Maps API result & Firebase DB
