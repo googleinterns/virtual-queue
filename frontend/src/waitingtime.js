@@ -43,6 +43,13 @@ export const waiting_time = {
     });
   },
 
+  // Same function as getWaitingTime except it utilizes promises and not callbacks
+  getWaitingTimeAsync(storeId) {
+    return new Promise(resolve => {
+      this.getWaitingTime(storeId, resolve);
+    }); 
+  },
+
   // Adds waiting time to current time and returns in LTS format
   convertTimeToETA(waitingTime) {
     var now = moment();

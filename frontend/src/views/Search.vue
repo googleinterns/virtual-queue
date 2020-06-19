@@ -102,7 +102,7 @@
             <div class="media-content">
               <p class="title is-6 is-left">{{ mark.location }}</p>
               <p class="subtitle is-6">
-                Wait: {{convertWaitTime(mark.waitingTime)}} <br />
+                Wait: {{ convertWaitTime(mark.waitingTime) }} <br />
                 Travel: {{ mark.travelTime }}
               </p>
             </div>
@@ -210,16 +210,16 @@ export default {
       this.currentPlace = place;
     },
 
-  convertWaitTime(num) {
-    var hours = Math.floor(num / 60);
-    var minutes = num % 60;
-    if (hours) {
-      if (minutes) return hours + " hrs " + minutes + " mins";
-      else return hours + " hrs";
-    } else {
-      return minutes + " mins";
-    }
-  },
+    convertWaitTime(num) {
+      var hours = Math.floor(num / 60);
+      var minutes = num % 60;
+      if (hours) {
+        if (minutes) return hours + " hrs " + minutes + " mins";
+        else return hours + " hrs";
+      } else {
+        return minutes + " mins";
+      }
+    },
 
     geolocate: function() {
       // Gets user's location and centers the map around that
@@ -259,8 +259,8 @@ export default {
             var store = response.data.results[i];
             let dbRef = firebase.database().ref();
             var locref = dbRef.child("Store").child(store.place_id);
+            // check if a store with the location ID exists in firebase DB
             if (locref) {
-              // check if a store with the location ID exists in firebase DB
               let localStore = store;
               promises.push(
                 dbRef
@@ -270,7 +270,7 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      // if queue is enabled at store, push it into the array of queues
+                      // If queue is enabled, obtain remaining fields of information
                       let distanceParams = {
                         origins: center.lat + "," + center.lng,
                         destinations: "place_id:" + localStore.place_id,
@@ -294,9 +294,10 @@ export default {
                               process.env.VUE_APP_MAPS_API_KEY +
                               "&maxwidth=90";
 
-                          return waiting_time.getWaitingTime(
-                            localStore.place_id,
-                            function(waitingTime) {
+                          // Obtains waiting time based on queue length
+                          return waiting_time
+                            .getWaitingTimeAsync(localStore.place_id)
+                            .then((waitingTime) => {
                               queues.push({
                                 location: localStore.name,
                                 position: localStore.geometry.location,
@@ -305,11 +306,9 @@ export default {
                                   response.data.rows[0].elements[0].duration
                                     .text,
                                 waitingTime: waitingTime,
-                                waitingTimeText: waiting_time.convertToHours(waitingTime),
                                 img: imgVal,
                               });
-                            }
-                          );
+                            });
                         });
                     }
                   })
@@ -317,17 +316,29 @@ export default {
             }
           }
           Promise.all(promises).then(() => {
-            console.log("promise " + promises.length)
             // Wait for all promises to return and then sort the queue
             if (queues.length == 0) this.status = -1;
             else this.status = 0;
 
             queues.sort(function(a, b) {
               // Split the string to obtain the numerical value of wait & travel time and add the two
-              var aTotalTime = parseInt(a.travelTime.split(" ")) + a.waitingTime;
-              var bTotalTime = parseInt(b.travelTime.split(" ")) + b.waitingTime;
-              console.log(aTotalTime, a.location);
-              console.log(bTotalTime, b.location);
+              var aTotalTime = 0;
+              var bTotalTime = 0;
+              if (parseInt(a.travelTime.split(" ")) > a.waitingTime)
+                aTotalTime = a.travelTime;
+              else {
+                aTotalTime = a.waitingTime;
+              }
+
+              if(parseInt(b.travelTime.split(" ")) > b.waitingTime)
+                bTotalTime = b.travelTime;
+              else {
+                bTotalTime = b.waitingTime;
+              }
+              // var aTotalTime =
+              //   parseInt(a.travelTime.split(" ")) + a.waitingTime;
+              // var bTotalTime =
+              //   parseInt(b.travelTime.split(" ")) + b.waitingTime;
               // Sort in ascending order
               return aTotalTime - bTotalTime;
             });
