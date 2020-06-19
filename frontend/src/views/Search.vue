@@ -102,7 +102,7 @@
             <div class="media-content">
               <p class="title is-6 is-left">{{ mark.location }}</p>
               <p class="subtitle is-6">
-                Wait: {{mark.waitingTime}} <br />
+                Wait: {{convertWaitTime(mark.waitingTime)}} <br />
                 Travel: {{ mark.travelTime }}
               </p>
             </div>
@@ -210,6 +210,17 @@ export default {
       this.currentPlace = place;
     },
 
+  convertWaitTime(num) {
+    var hours = Math.floor(num / 60);
+    var minutes = num % 60;
+    if (hours) {
+      if (minutes) return hours + " hrs " + minutes + " mins";
+      else return hours + " hrs";
+    } else {
+      return minutes + " mins";
+    }
+  },
+
     geolocate: function() {
       // Gets user's location and centers the map around that
       navigator.geolocation.getCurrentPosition((position) => {
@@ -283,7 +294,7 @@ export default {
                               process.env.VUE_APP_MAPS_API_KEY +
                               "&maxwidth=90";
 
-                          waiting_time.getWaitingTime(
+                          return waiting_time.getWaitingTime(
                             localStore.place_id,
                             function(waitingTime) {
                               queues.push({
@@ -294,6 +305,7 @@ export default {
                                   response.data.rows[0].elements[0].duration
                                     .text,
                                 waitingTime: waitingTime,
+                                waitingTimeText: waiting_time.convertToHours(waitingTime),
                                 img: imgVal,
                               });
                             }
@@ -305,6 +317,7 @@ export default {
             }
           }
           Promise.all(promises).then(() => {
+            console.log("promise " + promises.length)
             // Wait for all promises to return and then sort the queue
             if (queues.length == 0) this.status = -1;
             else this.status = 0;
@@ -313,6 +326,8 @@ export default {
               // Split the string to obtain the numerical value of wait & travel time and add the two
               var aTotalTime = parseInt(a.travelTime.split(" ")) + a.waitingTime;
               var bTotalTime = parseInt(b.travelTime.split(" ")) + b.waitingTime;
+              console.log(aTotalTime, a.location);
+              console.log(bTotalTime, b.location);
               // Sort in ascending order
               return aTotalTime - bTotalTime;
             });
