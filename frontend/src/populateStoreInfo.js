@@ -38,7 +38,6 @@ rl.question("Please enter your location ", function(location) {
       )
       .then((response) => {
         for (var j = 0; j < response.data.results.length; j++) {
-          // console.log(response.data.results[j].name);
           let place_id = response.data.results[j].place_id;
           axios
             .get(
@@ -66,8 +65,11 @@ rl.question("Please enter your location ", function(location) {
 
               if (storeDetails.rating) values.Rating = storeDetails.rating;
 
-              if (storeDetails.opening_hours)
-                values.OperationalHours = storeDetails.opening_hours;
+              if (
+                storeDetails.opening_hours &&
+                storeDetails.opening_hours.periods
+              )
+                values.OperationalHours = storeDetails.opening_hours.periods;
 
               firebase
                 .database()
