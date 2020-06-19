@@ -26,7 +26,6 @@ const USER_ID = "2L2GVG7rIPZojeSEixUWDdsu2Eh1";
 
 rl.question("Please enter your location ", function(location) {
   let shops = ["liquor", "food", "grocery", "pizza", "restaurant", "medicine"];
-  // let shops = ["liquor"]
   for (var i = 0; i < shops.length; i++) {
     axios
       .get(
@@ -53,7 +52,7 @@ rl.question("Please enter your location ", function(location) {
               console.log(storeDetails.name);
               let values = {
                 IsEnabled: true,
-                AvgServeTime: Math.floor(Math.random() * 20) + 1,
+                AvgServeTime: Math.floor(Math.random() * 10) + 5,
                 CurrentToken: Math.floor(Math.random() * 50) + 1,
                 StoreName: storeDetails.name,
                 QueueLength: 0,
