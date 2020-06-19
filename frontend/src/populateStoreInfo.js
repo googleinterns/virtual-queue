@@ -43,22 +43,32 @@ rl.question("Please enter your location ", function(location) {
           let place_id = response.data.results[j].place_id;
           axios
             .get(
-              "https://maps.googleapis.com/maps/api/place/details/json?place_id="+place_id+"&fields=name,rating,formatted_phone_number,formatted_address,types,opening_hours,website&key=AIzaSyB5zdJrg17CL2W9wxiXsLvAdoztzhxMdPo"
+              "https://maps.googleapis.com/maps/api/place/details/json?place_id=" +
+                place_id +
+                "&fields=name,rating,formatted_phone_number,formatted_address,types,opening_hours,website&key=" +
+                process.env.VUE_APP_MAPS_API_KEY
             )
             .then((response) => {
-              console.log(response.data.result.name);
+              let storeDetails = response.data.result;
+              console.log(storeDetails.name);
               let values = {
                 IsEnabled: true,
                 AvgServeTime: Math.floor(Math.random() * 20) + 1,
                 CurrentToken: Math.floor(Math.random() * 50) + 1,
-                StoreName: response.data.result.name,
+                StoreName: storeDetails.name,
                 QueueLength: 0,
-              }
-              if(response.data.result.formatted_phone_number)
-                values.Phone = response.data.result.formatted_phone_number;
-              
-                if(response.data.result.formatted_address)
-                values.Address = response.data.result.formatted_address;
+              };
+
+              if (storeDetails.formatted_phone_number)
+                values.Phone = storeDetails.formatted_phone_number;
+
+              if (storeDetails.formatted_address)
+                values.Address = storeDetails.formatted_address;
+
+              if (storeDetails.rating) values.Rating = storeDetails.rating;
+
+              if (storeDetails.opening_hours)
+                values.OperationalHours = storeDetails.opening_hours;
 
               firebase
                 .database()
