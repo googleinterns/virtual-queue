@@ -25,8 +25,9 @@ const rl = readline.createInterface({
 const USER_ID = "2L2GVG7rIPZojeSEixUWDdsu2Eh1";
 
 rl.question("Please enter your location ", function(location) {
-  let shops = ["liquor"];
-  for (var i = 0; i < 1; i++) {
+  let shops = ["liquor", "food", "grocery", "pizza", "restaurant", "medicine"];
+  // let shops = ["liquor"]
+  for (var i = 0; i < shops.length; i++) {
     axios
       .get(
         "https://maps.googleapis.com/maps/api/place/textsearch/json?query=" +
@@ -37,34 +38,40 @@ rl.question("Please enter your location ", function(location) {
           process.env.VUE_APP_MAPS_API_KEY
       )
       .then((response) => {
-        for (var j = 0; j < 1; j++) {
-          console.log(response.data.results[j].name);
+        for (var j = 0; j < response.data.results.length; j++) {
+          // console.log(response.data.results[j].name);
           let place_id = response.data.results[j].place_id;
           axios
             .get(
-              "https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJYdIpRkLiDDkRlUQf4WJbJcg&fields=name,rating,formatted_phone_number,formatted_address,types,opening_hours,website&key=AIzaSyB5zdJrg17CL2W9wxiXsLvAdoztzhxMdPo"
+              "https://maps.googleapis.com/maps/api/place/details/json?place_id="+place_id+"&fields=name,rating,formatted_phone_number,formatted_address,types,opening_hours,website&key=AIzaSyB5zdJrg17CL2W9wxiXsLvAdoztzhxMdPo"
             )
             .then((response) => {
-              console.log(response);
-              // firebase
-              //   .database()
-              //   .ref("Store/" + place_id)
-              //   .set({
-              //     IsEnabled: true,
-              //     AvgServeTime: Math.floor(Math.random() * 20) + 1,
-              //     CurrentToken: Math.floor(Math.random() * 50) + 1,
-              //     StoreName: response.data.result.name,
-              //     QueueLength: 0,
-              //     Address: response.data.result.formatted_address,
-              //     Phone: response.data.result.formatted_phone_number,
-              //   });
-              // firebase
-              //   .database()
-              //   .ref("User/" + USER_ID + "/OwnedStoreID/" + place_id)
-              //   .set({
-              //     StoreID: place_id,
-              //   });
-            });
+              console.log(response.data.result.name);
+              let values = {
+                IsEnabled: true,
+                AvgServeTime: Math.floor(Math.random() * 20) + 1,
+                CurrentToken: Math.floor(Math.random() * 50) + 1,
+                StoreName: response.data.result.name,
+                QueueLength: 0,
+              }
+              if(response.data.result.formatted_phone_number)
+                values.Phone = response.data.result.formatted_phone_number;
+              
+                if(response.data.result.formatted_address)
+                values.Address = response.data.result.formatted_address;
+
+              firebase
+                .database()
+                .ref("Store/" + place_id)
+                .set(values);
+              firebase
+                .database()
+                .ref("User/" + USER_ID + "/OwnedStoreID/" + place_id)
+                .set({
+                  StoreID: place_id,
+                });
+            })
+            .catch((error) => console.log(error));
         }
       })
       .catch((error) => console.log(error));
