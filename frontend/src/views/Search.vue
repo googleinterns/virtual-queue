@@ -322,28 +322,18 @@ export default {
 
             queues.sort(function(a, b) {
               // Split the string to obtain the numerical value of wait & travel time and add the two
-              var aTotalTime = 0;
-              var bTotalTime = 0;
-              if (parseInt(a.travelTime.split(" ")) > a.waitingTime)
-                aTotalTime = a.travelTime;
-              else {
-                aTotalTime = a.waitingTime;
-              }
-
-              if(parseInt(b.travelTime.split(" ")) > b.waitingTime)
-                bTotalTime = b.travelTime;
-              else {
-                bTotalTime = b.waitingTime;
-              }
-              // var aTotalTime =
-              //   parseInt(a.travelTime.split(" ")) + a.waitingTime;
-              // var bTotalTime =
-              //   parseInt(b.travelTime.split(" ")) + b.waitingTime;
+              // Delay is calculated as the max duration of wait and travel time
+              var aTotalTime = Math.max(
+                parseInt(a.travelTime.split(" ")),
+                a.waitingTime
+              );
+              var bTotalTime = Math.max(
+                parseInt(b.travelTime.split(" ")),
+                b.waitingTime
+              );
               // Sort in ascending order
               return aTotalTime - bTotalTime;
             });
-
-            // Assign markers based on intersection of Maps API result & Firebase DB
             this.markers = queues;
           });
         });
