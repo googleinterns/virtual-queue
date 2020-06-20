@@ -151,18 +151,17 @@ export const database_call = {
   getUserInfo: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child(this.getUserPath(storeId)).once("value", (snap) => {
-      var queuePosition = 1,
-        currentUserKey = null,
-        tokenNumber = null;
+      var userInfo = {};
+      userInfo.queuePosition = 1;
       snap.forEach(function(childSnap) {
         if (userId == childSnap.val().UserID) {
-          currentUserKey = childSnap.key;
-          tokenNumber = childSnap.val().Token;
+          userInfo.currentUserKey = childSnap.key;
+          userInfo.tokenNumber = childSnap.val().Token;
           return true;
         }
-        queuePosition++;
+        userInfo.queuePosition++;
       });
-      callBack(queuePosition, currentUserKey, tokenNumber);
+      callBack(userInfo);
     });
   },
 
@@ -216,7 +215,10 @@ export const database_call = {
     dbRef.child(this.getStorePath(userId)).once("value", (snap) => {
       let storeIds = [];
       snap.forEach(function(childSnap) {
-        storeIds.push(childSnap.val().StoreID);
+        storeIds.push({
+          StoreID: childSnap.val().StoreID,
+          StoreKey: childSnap.key, 
+        });
       });
       callBack(storeIds);
     });

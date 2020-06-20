@@ -263,13 +263,11 @@ export default {
           if (isEnrolled) {
             that.isUserEnrolled = true;
             database_call.getUserInfo(that.storeId, that.uid, function(
-              queuePosition,
-              currentUserKey,
-              tokenNumber
+              userInfo
             ) {
-              that.queuePosition = queuePosition;
-              that.currentUserKey = currentUserKey;
-              that.tokenNumber = tokenNumber;
+              that.queuePosition = userInfo.queuePosition;
+              that.currentUserKey = userInfo.currentUserKey;
+              that.tokenNumber = userInfo.tokenNumber;
               waiting_time.calculateWaitingTime(
                 that.storeId,
                 that.queuePosition,
