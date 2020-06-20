@@ -22,16 +22,20 @@
 .full {
   width: 100%;
 }
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+
+.page-container {
+  position: relative;
+  min-height: 100vh;
 }
 
-.footer {
+.content-wrap {
+  padding-bottom: 2.5rem;    /* Footer height */
+}
+
+#footer {
   position: absolute;
   bottom: 0;
   width: 100%;
-  background: #6cf;
+  padding: 2rem;
+  background-color: #fafafa;
 }
