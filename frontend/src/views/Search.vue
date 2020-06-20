@@ -61,9 +61,10 @@
           </gmap-map>
         </div>
       </div>
-      <div class="column">
-        <div v-if="status === 1">
-          Loading..
+      <div class="column" v-if="status === 1">
+        <button class="button is-loading borderless">Loading</button>        
+        <div>
+          Loading
         </div>
         <div v-if="status === -1">
           No shops found near you!
@@ -136,6 +137,15 @@
 #map {
   height: 200px;
   margin: 0 auto;
+}
+
+.waiting{
+  margin: 0 auto;
+}
+
+.borderless{
+  border-color: white;
+  padding: 0px;
 }
 </style>
 
@@ -233,6 +243,7 @@ export default {
       let promises = [];
       this.dragged = false;
       this.status = 1;
+      this.markers = []
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
