@@ -91,6 +91,7 @@ export default {
 </script>
 
 <style>
+@import './assets/styles/App.css';
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -111,6 +112,5 @@ export default {
 }
 .navbar {
   margin-bottom: 5%;
-  padding: px;
 }
 </style>

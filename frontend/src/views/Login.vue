@@ -1,24 +1,57 @@
 <template>
   <div class="login">
-    <h3>Sign In</h3>
-    <input type="text" v-model="email" placeholder="Email" />
-    <br />
-    <input type="password" v-model="password" placeholder="Password" />
-    <br />
-    <br />
-    <button @click="login">Connect</button>
-
-    <p>
-      or Sign In with Google
-      <br />
-      <button @click="googleSignIn" class="google-button">
-        <img alt="Google Logo" src="../assets/google-icon.png" />
-      </button>
-    </p>
-    <p>
-      You don't have an account? You can
-      <router-link to="/sign-up">create one</router-link>
-    </p>
+    <div class="outer">
+      <div class="middle">
+        <h1 class="title is-3">Sign In</h1>
+        <div class="inner box">
+          <div class="field">
+            <p class="control has-icons-left">
+              <input
+                class="input"
+                v-model="email"
+                type="email"
+                placeholder="Email"
+              />
+              <span class="icon is-small is-left">
+                <i class="fas fa-envelope"></i>
+              </span>
+            </p>
+          </div>
+          <div class="field">
+            <p class="control has-icons-left">
+              <input
+                class="input"
+                v-model="password"
+                type="password"
+                placeholder="Password"
+              />
+              <span class="icon is-small is-left">
+                <i class="fas fa-lock"></i>
+              </span>
+            </p>
+          </div>
+          <div class="field">
+            <p class="control">
+              <button class="button is-info full" @click="login">
+                Login
+              </button>
+            </p>
+          </div>
+        </div>
+        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <p>
+          or Sign In with Google
+          <br />
+          <button @click="googleSignIn" class="google-button">
+            <img alt="Google Logo" src="../assets/google-icon.png" />
+          </button>
+        </p>
+        <p>
+          Don't have an account? You can
+          <router-link to="/sign-up">create one</router-link>
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -65,7 +98,7 @@ export default {
 </script>
 
 <style scoped>
-.login {
+/* .login {
   margin-top: 40px;
 }
 input {
@@ -85,7 +118,7 @@ p {
 p a {
   text-decoration: underline;
   cursor: pointer;
-}
+} */
 .google-button {
   width: 75px;
   background: white;
