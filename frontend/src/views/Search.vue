@@ -1,10 +1,9 @@
 <template>
-  <div>
+  <div class="search">
     <div class="container has-text-centered">
       <h1 class="title is-3">Store finder</h1>
-
       <div class="columns is-gapless is-mobile is-centered">
-        <div class="field is-grouped search">
+        <div class="field is-grouped">
           <form class="control has-icons-right" @submit="search">
             <input
               class="input is-rounded"
