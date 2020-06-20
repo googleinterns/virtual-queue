@@ -28,7 +28,7 @@ export const waiting_time = {
         return true;
       }
       queuePosition++;
-    });
+    }
     callBack(queuePosition);
   },
 
@@ -68,5 +68,14 @@ export const waiting_time = {
     } else {
       return minutes + " mins";
     }
+  },
+
+  // Given the store object and userId, returns waiting time
+  getExpectedTimeEnrolledStore(store, userId, callBack) {
+    var that = this;
+    this.getQueuePosition(store, userId, function(queuePosition) {
+      var waitingTime = store.AvgServeTime * (queuePosition - 1);
+      callBack(that.convertTimeToETA(waitingTime));
+    });
   },
 };
