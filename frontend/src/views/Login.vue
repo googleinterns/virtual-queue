@@ -38,17 +38,12 @@
             </p>
           </div>
         </div>
-        <div class="g-signin2" data-onsuccess="onSignIn"></div>
         <p>
-          or Sign In with Google
+          or sign in with Google
           <br />
           <button @click="googleSignIn" class="google-button">
             <img alt="Google Logo" src="../assets/google-icon.png" />
           </button>
-        </p>
-        <p>
-          Don't have an account? You can
-          <router-link to="/sign-up">create one</router-link>
         </p>
       </div>
     </div>
@@ -98,27 +93,6 @@ export default {
 </script>
 
 <style scoped>
-/* .login {
-  margin-top: 40px;
-}
-input {
-  margin: 10px 0;
-  width: 20%;
-  padding: 15px;
-}
-button {
-  margin-top: 20px;
-  width: 10%;
-  cursor: pointer;
-}
-p {
-  margin-top: 40px;
-  font-size: 14px;
-}
-p a {
-  text-decoration: underline;
-  cursor: pointer;
-} */
 .google-button {
   width: 75px;
   background: white;
@@ -127,6 +101,7 @@ p a {
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
   outline: 0;
   border: 0;
+  margin: 2%;
 }
 .google-button:active {
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
