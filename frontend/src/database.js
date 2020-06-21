@@ -165,6 +165,13 @@ export const database_call = {
     });
   },
 
+  // Return a promise with the the queuePosition, currentUserKey (of the user in UsersInQueue), and tokenNumber
+  getUserInfoAsync: function(storeId, userId) {
+    return new Promise((resolve) => {
+      this.getUserInfo(storeId, userId, resolve);
+    });
+  },
+
   // Pass a callBack function as an argument while calling this function, the callBack function has queuePosition as an argument
   getCurrentUserKey: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
