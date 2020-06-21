@@ -151,18 +151,24 @@ export const database_call = {
   getUserInfo: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
     dbRef.child(this.getUserPath(storeId)).once("value", (snap) => {
-      var queuePosition = 1,
-        currentUserKey = null,
-        tokenNumber = null;
+      var userInfo = {};
+      userInfo.queuePosition = 1;
       snap.forEach(function(childSnap) {
         if (userId == childSnap.val().UserID) {
-          currentUserKey = childSnap.key;
-          tokenNumber = childSnap.val().Token;
+          userInfo.currentUserKey = childSnap.key;
+          userInfo.tokenNumber = childSnap.val().Token;
           return true;
         }
-        queuePosition++;
+        userInfo.queuePosition++;
       });
-      callBack(queuePosition, currentUserKey, tokenNumber);
+      callBack(userInfo);
+    });
+  },
+
+  // Return a promise with the the queuePosition, currentUserKey (of the user in UsersInQueue), and tokenNumber
+  getUserInfoAsync: function(storeId, userId) {
+    return new Promise((resolve) => {
+      this.getUserInfo(storeId, userId, resolve);
     });
   },
 
@@ -211,15 +217,9 @@ export const database_call = {
   },
 
   // Get the array of SubscribedStoreIDs of user
-  getSubscribedStoreID: function(userId, callBack) {
+  getSubscribedStoreID: function(userId) {
     let dbRef = firebase.database().ref();
-    dbRef.child(this.getStorePath(userId)).once("value", (snap) => {
-      let storeIds = [];
-      snap.forEach(function(childSnap) {
-        storeIds.push(childSnap.val().StoreID);
-      });
-      callBack(storeIds);
-    });
+    return dbRef.child(this.getStorePath(userId)).once("value");
   },
 
   // Set IsEnabled value of store
@@ -238,22 +238,22 @@ export const database_call = {
     let dbRef = firebase.database().ref();
     dbRef.child("Store/" + storeId).once("value", (snap) => {
       var store = {};
-      store["IsEnabled"] = snap.val().IsEnabled;
-      store["AvgServeTime"] = snap.val().AvgServeTime;
-      store["QueueLength"] = snap.val().QueueLength;
-      store["Address"] = snap.val().Address;
-      store["Phone"] = snap.val().Phone;
-      store["StoreName"] = snap.val().StoreName;
-      callBack(store);
+      if (snap.exists()) {
+        store["IsEnabled"] = snap.val().IsEnabled;
+        store["AvgServeTime"] = snap.val().AvgServeTime;
+        store["QueueLength"] = snap.val().QueueLength;
+        store["Address"] = snap.val().Address;
+        store["Phone"] = snap.val().Phone;
+        store["StoreName"] = snap.val().StoreName;
+        callBack(store);
+      }
     });
   },
 
   // Returns the entire store object
-  getStoreObject: function(storeId, callBack) {
+  getStoreObject: function(storeId) {
     let dbRef = firebase.database().ref();
-    dbRef.child("Store/" + storeId).once("value", (store) => {
-      callBack(store.val());
-    });
+    return dbRef.child("Store/" + storeId).once("value");
   },
 
   // Get path to IsEnabled of store with storeId

@@ -3,13 +3,10 @@ import moment from "moment";
 
 export const waiting_time = {
   // Returns the expected waiting time for a user enrolled in the queue
-  getWaitingTimeEnrolled(storeId, userId, callBack) {
-    database_call.getStoreObject(storeId, function(store) {
-      this.getQueuePosition(store, userId, function(queuePosition) {
-        var waitingTime = store.AvgServeTime * (queuePosition - 1);
-        callBack(waitingTime);
-      });
-    });
+  getWaitingTimeEnrolled(store, userId) {
+    var queuePosition = this.getQueuePosition(store, userId);
+    var waitingTime = store.AvgServeTime * (queuePosition - 1);
+    return waitingTime;
   },
 
   // Returns the waiting time given the queuePosition
@@ -21,16 +18,16 @@ export const waiting_time = {
   },
 
   // Returns position of user in UsersInQueue of store
-  getQueuePosition: function(store, userId, callBack) {
+  getQueuePosition: function(store, userId) {
     var queue = store.UsersInQueue,
       queuePosition = 1;
-    queue.forEach(function(user) {
-      if (userId === user.UserID) {
-        return true;
+    for (let user in queue) {
+      if (userId === queue[user].UserID) {
+        break;
       }
       queuePosition++;
-    });
-    callBack(queuePosition);
+    }
+    return queuePosition;
   },
 
   // Returns the waiting time for a store
@@ -45,9 +42,9 @@ export const waiting_time = {
 
   // Same function as getWaitingTime except it utilizes promises and not callbacks
   getWaitingTimeAsync(storeId) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.getWaitingTime(storeId, resolve);
-    }); 
+    });
   },
 
   // Adds waiting time to current time and returns in LTS format
