@@ -1,57 +1,114 @@
 <template>
   <div class="Queue">
-    <h1>Welcome to the Queue page</h1>
+    <h1 class="title is-3">{{ storeName }}</h1>
+    <h3 class="columns is-centered is-mobile" v-if="address != null">
+      <h3 class="column is-8">
+        {{ address }}
+        <br />
+        <a
+          id="location"
+          v-bind:href="
+            'https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=' +
+              storeId
+          "
+          ><i class="fa fa-map-marker fa-2x" aria-hidden="true"></i
+        ></a>
+      </h3>
+    </h3>
+    <h3 v-if="phone != null"><font-awesome-icon icon="phone" /> {{ phone }}</h3>
     <br />
-    <div v-if="uid">
-      <h2>Your UserID is : {{ uid }}</h2>
-    </div>
-    <div v-else>
-      <h2>Login to enroll to in the queue</h2>
-    </div>
     <br />
-    <h2>You are in Store : {{ storeId }}</h2>
-    <div v-if="isEnabled">
-      <br />
-      <br />
-      <highcharts
-        :options="chartOptions"
-        ref="lineCharts"
-        :constructor-type="chart"
-      ></highcharts>
-      <br />
-      <br />
+
+    <!--If queue for the store is enabled-->
+    <div class="is-size-5" v-if="isEnabled">
+      <!--If userInfo is loaded also means person is logged in-->
       <div v-if="isUserLoaded">
+        <!--If person has not enrolled to the queue-->
         <div v-if="!isUserEnrolled">
-          <h2>The size of the queue is : {{ queueLength }}</h2>
           <h2>
-            Waiting Time for this queue is : {{ waitingTimeInHoursUnenrolled }}
+            You would have to wait till: {{ expectedTimeUnenrolled }} ({{
+              waitingTimeInHoursUnenrolled
+            }}
+            more)
           </h2>
-          <h2>Your turn will arrive at: {{ expectedTimeUnenrolled }}</h2>
         </div>
-        <div v-else>
-          <h2>Your position in the queue is : {{ queuePosition }}</h2>
-          <h2>Your token number is : {{ tokenNumber }}</h2>
-          <h2>Your waiting time is : {{ waitingTimeInHours }}</h2>
-          <h2>Your turn will arrive at: {{ expectedTime }}</h2>
+        <!--If person has enrolled to the queue-->
+        <div class="tooltip" v-else>
+          <span>
+            Token Number :
+            <span class="is-size-1">{{ tokenNumber }} </span>
+            <button
+              @click="shareContent"
+              @onmouseout="outFunc()"
+              id="shareIcon"
+              class="button is-warning is-light"
+              type="button"
+              v-clipboard:copy="textToShare"
+              v-clipboard:success="onShareCopy"
+              v-clipboard:error="onCopyError"
+            >
+              <span class="tooltiptext" id="myTooltip">Copy to clipboard</span>
+              <font-awesome-icon icon="share-alt" />
+            </button>
+          </span>
+          <h2>
+            Time to reach store: {{ expectedTime }} ({{ waitingTimeInHours }}
+            remaining)
+          </h2>
         </div>
-        <button :disabled="isUserEnrolled" @click="enterQueue">
+        <br />
+        <button
+          class="button is-success is-light"
+          :disabled="isUserEnrolled"
+          @click="enterQueue"
+        >
           Enter Queue
         </button>
-        <br /><br />
-        <button :disabled="!isUserEnrolled" @click="exitQueue">
+        &nbsp; &nbsp; &nbsp;
+        <button
+          class="button is-danger is-light"
+          :disabled="!isUserEnrolled"
+          @click="exitQueue"
+        >
           Leave Queue
         </button>
       </div>
+      <!--if person is not logged in-->
       <div v-else-if="!uid">
-        <h2>The size of the queue is : {{ queueLength }}</h2>
         <h2>
-          Waiting time for this queue is : {{ waitingTimeInHoursUnenrolled }}
+          You would have to wait till: {{ expectedTimeUnenrolled }} ({{
+            waitingTimeInHoursUnenrolled
+          }}
+          more)
         </h2>
-        <h2>Your turn will arrive at: {{ expectedTimeUnenrolled }}</h2>
+        <br />
+        <button class="button is-info is-light">
+          <router-link class="has-text-black" :to="{ name: 'Login' }"
+            >Login to enroll to the queue</router-link
+          >
+        </button>
       </div>
+      <br />
+      <br />
+      <div class="columns is-centered">
+        <highcharts
+          class="column is-four-fifths"
+          :options="chartOptions"
+          ref="lineCharts"
+          :constructor-type="chart"
+        ></highcharts>
+      </div>
+      <h1 class="has-text-dark is-size-7">
+        Disclaimer: From this graph you can predict percentage of queue resolved
+        in token ranges of 20.
+      </h1>
+      <br />
+      <br />
     </div>
-    <div v-else>
-      <h2>Queue Disabled.</h2>
+    <!--if Queue is not enabled-->
+    <div class="is-size-5 is-danger" v-else-if="isEnabled != null">
+      <h3>Currently closed !!</h3>
+      <h3>Queue Disabled !!</h3>
     </div>
     <br /><br />
   </div>
@@ -64,10 +121,16 @@ import { Chart } from "highcharts-vue";
 
 export default {
   name: "Queue",
-  components: { highcharts: Chart },
+  components: {
+    highcharts: Chart,
+  },
   data() {
     return {
+      textToShare: null,
       storeId: this.$route.params.StoreId,
+      storeName: null,
+      address: null,
+      phone: null,
       uid: null,
       currentUserKey: null,
       currentStoreKey: null,
@@ -78,9 +141,9 @@ export default {
       tokenNumber: 0,
       isEnabled: null,
       waitingTime: 0,
-      waitingTimeInHours: null,
-      waitingTimeInHoursUnenrolled: null,
-      expectedTime: null,
+      waitingTimeInHours: 0,
+      waitingTimeInHoursUnenrolled: "0 minutes",
+      expectedTime: 0,
       expectedTimeUnenrolled: null,
       chartOptions: {
         chart: { type: "areaspline" },
@@ -88,20 +151,24 @@ export default {
           text: "Current Queue Status",
           style: {
             fontSize: "20px",
+            fontWeight: "bold",
           },
         },
         subtitle: {
           text: "",
           style: {
-            fontSize: "15px",
+            fontSize: "17px",
           },
+        },
+        credits: {
+          enabled: false,
         },
         xAxis: {
           categories: [],
           title: {
             text: "Token Range",
             style: {
-              fontSize: "14px",
+              fontSize: "16px",
               fontWeight: "bold",
             },
           },
@@ -118,10 +185,11 @@ export default {
           title: {
             text: "Percentage of People Resolved (%)",
             style: {
-              fontSize: "14px",
+              fontSize: "16px",
               fontWeight: "bold",
             },
           },
+          tickInterval: 20,
           labels: {
             style: {
               fontSize: "14px",
@@ -147,11 +215,41 @@ export default {
     };
   },
   methods: {
-    // Set isEnabled of store
+    // When copy through share button is successful
+    onShareCopy: function() {
+      var tooltip = document.getElementById("myTooltip");
+      tooltip.innerHTML = "Copied!!!";
+    },
+    // When copy through share button is unsuccessful
+    onCopyError: function() {
+      var tooltip = document.getElementById("myTooltip");
+      tooltip.innerHTML = "Failed to copy";
+    },
+    // This function called when we hover over share button
+    outFunc: function() {
+      var tooltip = document.getElementById("myTooltip");
+      tooltip.innerHTML = "Copy to clipboard";
+    },
+    // The content copied when share button is clicked
+    shareContent: function() {
+      this.textToShare =
+        this.storeName +
+        "\n" +
+        this.address +
+        "\n" +
+        this.phone +
+        "\n" +
+        "Token No.: " +
+        this.tokenNumber;
+    },
+    // Getting info about the store
     storeInit: function() {
       var that = this;
       database_call.getStoreInfo(that.storeId, function(store) {
         that.isEnabled = store.IsEnabled;
+        that.address = store.Address;
+        that.storeName = store.StoreName;
+        that.phone = store.Phone;
       });
     },
     // Function to populate intial data values
@@ -297,6 +395,7 @@ export default {
         }
       }
     },
+    // Function to create Power-curve
     makeGraph: function(snap) {
       var lineGraph = [];
       var firstToken = 0,
@@ -397,3 +496,48 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+#shareIcon {
+  top: -10px;
+  min-height: 2em;
+  vertical-align: middle;
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 140px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -75px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+</style>
