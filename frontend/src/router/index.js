@@ -6,6 +6,7 @@ import Login from "../views/Login.vue";
 import SignUp from "../views/SignUp.vue";
 import Search from "../views/Search.vue";
 import Queue from "../views/Queue.vue";
+import Error404 from "../views/404.vue"
 
 Vue.use(VueRouter);
 
@@ -39,8 +40,13 @@ const routes = [
     component: Queue,
   },
   {
+    path: "/404",
+    name: "Path Not Found",
+    component: Error404,
+  },
+  {
     path: "*",
-    redirect: "/search",
+    redirect: "/404",
   },
 ];
 
