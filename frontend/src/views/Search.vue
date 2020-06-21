@@ -143,9 +143,6 @@
   padding: 0px;
 }
 
-.search {
-  margin-bottom: 7%;
-}
 
 .fixed-width-80{
   width: 80%;
