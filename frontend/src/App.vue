@@ -8,7 +8,9 @@
       >
         <div class="navbar-brand">
           <a class="navbar-item">
-            <img src="./assets/google-icon.png" height="28" />
+            <router-link :to="{ name: 'Search' }">
+              <img src="./assets/google-icon.png" height="28" />
+            </router-link>
           </a>
           <a
             role="button"

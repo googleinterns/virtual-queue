@@ -2,6 +2,7 @@
   <div class="outer">
     <div class="middle">
       <h1 class="title is-3">Sign Up</h1>
+      <span v-html="signupContent"></span>
       <div class="inner box">
         <div class="field">
           <p class="control has-icons-left">
@@ -53,6 +54,7 @@ export default {
     return {
       email: "",
       password: "",
+      signupContent: null,
     };
   },
   methods: {
@@ -63,11 +65,15 @@ export default {
         .createUserWithEmailAndPassword(this.email, this.password)
         .then(
           () => {
-            that.$router.push({ name: "Home" });
-            alert("Your account has been created!");
+            this.signupContent =
+              '<div class="success-sign"> Happy to have you on board! :)</div>';
+            setTimeout(function() {
+              that.$router.push({ name: "Search" });
+            }, 1500);
           },
           (err) => {
-            alert("Oops. " + err.message);
+            this.signupContent =
+              '<div class="error-sign">' + err.message + "</div>";
           }
         );
     },
