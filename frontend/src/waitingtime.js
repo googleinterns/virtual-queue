@@ -21,8 +21,8 @@ export const waiting_time = {
   getQueuePosition: function(store, userId) {
     var queue = store.UsersInQueue,
       queuePosition = 1;
-    for(let user in queue){
-      if(userId === queue[user].UserID){
+    for (let user in queue) {
+      if (userId === queue[user].UserID) {
         break;
       }
       queuePosition++;
@@ -42,9 +42,9 @@ export const waiting_time = {
 
   // Same function as getWaitingTime except it utilizes promises and not callbacks
   getWaitingTimeAsync(storeId) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.getWaitingTime(storeId, resolve);
-    }); 
+    });
   },
 
   // Adds waiting time to current time and returns in LTS format

@@ -1,7 +1,7 @@
 <template>
   <div class="container has-text-centered">
     <div class="task-container is-mobile is-centered is-one-thirds">
-      <h1 class="title is-3" style="margin:60px">Your Queues</h1>
+      <h1 class="title is-3">Your Queues</h1>
       <div
         v-for="(store, index) of subscribedStores"
         :key="store.StoreId"
@@ -35,7 +35,7 @@
                 </button>
               </div>
               <!-- If user's severity state is 0, displays Got Served button, else displays Leave Queue button -->
-              <div v-if="store.State===0" class="column">
+              <div v-if="store.State === 0" class="column">
                 <button
                   class="button is-link is-light is-centered is-small"
                   @click="leaveQueue(store.StoreId, index)"
@@ -57,10 +57,7 @@
               <div class="column">
                 <a
                   class="button is-link is-light is-centered is-small"
-                  v-bind:href="
-                    'https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=' +
-                      store.StoreId
-                  "
+                  v-bind:href="mapURL+store.StoreId"
                 >
                   <span class="icon is-small">
                     <i class="fa fa-map-marker" aria-hidden="true"></i>
@@ -83,19 +80,19 @@
                 <p>You should be at the store now!<br /></p>
               </div>
               <div
-                v-else-if="store.State === 1"
+                v-else-if="store.State === 4"
                 class="button is-light is-static is-success"
               >
                 <p>Sit back and relax!<br /></p>
               </div>
               <div
-                v-else-if="store.State === 2"
+                v-else-if="store.State === 3"
                 class="button is-light is-static is-warning"
               >
                 <p>Get ready to leave<br /></p>
               </div>
               <div
-                v-else-if="store.State === 3"
+                v-else-if="store.State === 2"
                 class="button is-light is-static is-warning"
               >
                 <p>You should start now!<br /></p>
@@ -114,7 +111,7 @@
 <style>
 .active {
   border-radius: 16px;
-  box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 30px 30px 30px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 }
 </style>
@@ -132,6 +129,7 @@ export default {
       ownedStores: [],
       subscribedStores: [],
       activeIndexSubscribed: null,
+      mapURL: "https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=",
     };
   },
   methods: {
@@ -148,16 +146,15 @@ export default {
       this.$router.replace("queue/" + storeId);
     },
 
-    //remove user from queue 
+    // remove user from queue
     leaveQueue: function(storeId, key) {
       var storeKey = this.subscribedStores[key].StoreKey;
       var userKey = this.subscribedStores[key].UserKey;
 
-      // delete from stores
+      // delete store from local array subscribedStores
       delete this.subscribedStores[key];
-      console.log(this.subscribedStores);
 
-      //remove user from queue
+      // remove user from queue - db call
       database_call.removeFromQueue(
         storeId,
         this.uid,
@@ -197,29 +194,30 @@ export default {
       });
       var subscribedStores = [];
       var promises = [];
-      //Get SubscribedStoreIDs of user
+      // Get SubscribedStoreIDs of user
       database_call
         .getSubscribedStoreID(this.uid)
         .then((subscribedStoreIds) => {
           subscribedStoreIds.forEach(function(subscribedStore) {
+            var storeId = subscribedStore.val().StoreID;
+            var storeKey = subscribedStore.key;
+
+            // Retrieve the store object from db
             promises.push(
-              new Promise((resolve) => {
-                var storeId = subscribedStore.val().StoreID;
-                var storeKey = subscribedStore.key;
+              database_call.getStoreObject(storeId).then((storeObject) => {
+                var store = storeObject.val();
 
-                // Retrieve the store object from db
-                database_call.getStoreObject(storeId).then((storeObject) => {
-                  var store = storeObject.val();
+                // Calculate waiting time for queue
+                var waitingTime = waiting_time.getWaitingTimeEnrolled(
+                  store,
+                  that.uid
+                );
+                var expectedTime = waiting_time.convertTimeToETA(waitingTime);
 
-                  // Calculate waiting time for queue
-                  var waitingTime = waiting_time.getWaitingTimeEnrolled(
-                    store,
-                    that.uid
-                  );
-                  var expectedTime = waiting_time.convertTimeToETA(waitingTime);
-
-                  // Retrieve user info from db
-                  database_call.getUserInfo(storeId, that.uid, function(user) {
+                // Retrieve user info from db
+                return database_call
+                  .getUserInfoAsync(storeId, that.uid)
+                  .then((user) => {
                     var currentStore = {
                       StoreId: storeId,
                       StoreName: store.StoreName,
@@ -229,43 +227,42 @@ export default {
                       Token: user.tokenNumber,
                       UserKey: user.currentUserKey,
                       StoreKey: storeKey,
-                      TravelTime: 10,
+                      TravelTime: 0,
                     };
                     currentStore["State"] = that.getSeverityState(currentStore);
                     subscribedStores.push(currentStore);
-                    resolve();
+                    // resolve();
                   });
-                });
               })
             );
           });
+          // sort the stores on severity once all stores are pushed to subscribedStores
+          Promise.all(promises).then(() => {
+            subscribedStores.sort(function(a, b) {
+              // ascending order of severity
+              return that.getSeverityState(a) - that.getSeverityState(b);
+            });
+            that.subscribedStores = subscribedStores;
+          });
         });
-
-      // sort the stores on severity once all stores are pushed to subscribedStores
-      Promise.all(promises).then(() => {
-        subscribedStores.sort(function(a, b) {
-          // ascending order of severity
-          return that.getSeverity(a) - that.getSeverity(b);
-        });
-        that.subscribedStores = subscribedStores;
-      });
-    },
-
-    // returns the severity parameter for the store
-    getSeverity: function(store) {
-      var waitingTime = parseInt(store.WaitingTime);
-      var travelTime = parseInt(store.TravelTime);
-      return waitingTime - travelTime;
     },
 
     // returns the severity state to display conditional messages
     getSeverityState: function(store) {
-      var severity = this.getSeverity(store);
+      var waitingTime = parseInt(store.WaitingTime);
+      var travelTime = parseInt(store.TravelTime);
+      var severity = waitingTime - travelTime;
+
+      // Message: You should be at the store now! (waitTime < 10 min)
       if (store.WaitingTime < 10) return 0;
-      else if (severity > 30) return 1;
-      else if (severity > 10) return 2;
-      else if (severity > 0) return 3;
-      else return 4;
+      // Message: Sit back and relax! (waitTime - travelTime > 30 min)
+      else if (severity > 30) return 4;
+      // Message: Get ready to leave (30 min > waitTime - travelTime > 10 min)
+      else if (severity > 10) return 3;
+      // Message: You should start now! (10 min > waitTime - travelTime > 0 min)
+      else if (severity > 0) return 2;
+      // Message: Hope you're on your way! (waitTime - travelTime < 0 min)
+      else return 1;
     },
   },
   created() {
