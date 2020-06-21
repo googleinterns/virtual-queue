@@ -61,11 +61,14 @@
       </nav>
       <router-view />
     </div>
-      <footer id="footer">
-        <div class="content has-text-centered">
-          <p>Virtual Queues: Making your shopping experience efficient and <b>safe.</b></p>
-        </div>
-      </footer>
+    <footer id="footer">
+      <div class="content has-text-centered">
+        <p>
+          Virtual Queues: Making your shopping experience efficient and
+          <b>safe.</b>
+        </p>
+      </div>
+    </footer>
   </div>
 </template>
 

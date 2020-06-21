@@ -147,6 +147,10 @@
   border-color: white;
   padding: 0px;
 }
+
+.search{
+  margin-bottom: 7%;
+}
 </style>
 
 <script>
