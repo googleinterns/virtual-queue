@@ -3,13 +3,10 @@ import moment from "moment";
 
 export const waiting_time = {
   // Returns the expected waiting time for a user enrolled in the queue
-  getWaitingTimeEnrolled(storeId, userId, callBack) {
-    database_call.getStoreObject(storeId, function(store) {
-      this.getQueuePosition(store, userId, function(queuePosition) {
-        var waitingTime = store.AvgServeTime * (queuePosition - 1);
-        callBack(waitingTime);
-      });
-    });
+  getWaitingTimeEnrolled(store, userId) {
+    var queuePosition = this.getQueuePosition(store, userId);
+    var waitingTime = store.AvgServeTime * (queuePosition - 1);
+    return waitingTime;
   },
 
   // Returns the waiting time given the queuePosition
@@ -21,7 +18,7 @@ export const waiting_time = {
   },
 
   // Returns position of user in UsersInQueue of store
-  getQueuePosition: function(store, userId, callBack) {
+  getQueuePosition: function(store, userId) {
     var queue = store.UsersInQueue,
       queuePosition = 1;
     for(let user in queue){
@@ -30,7 +27,7 @@ export const waiting_time = {
       }
       queuePosition++;
     }
-    callBack(queuePosition);
+    return queuePosition;
   },
 
   // Returns the waiting time for a store
@@ -68,14 +65,5 @@ export const waiting_time = {
     } else {
       return minutes + " mins";
     }
-  },
-
-  // Given the store object and userId, returns waiting time
-  getExpectedTimeEnrolledStore(store, userId, callBack) {
-    var that = this;
-    this.getQueuePosition(store, userId, function(queuePosition) {
-      var waitingTime = store.AvgServeTime * (queuePosition - 1);
-      callBack(that.convertTimeToETA(waitingTime));
-    });
   },
 };
