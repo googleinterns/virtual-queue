@@ -3,6 +3,7 @@
     <div class="outer">
       <div class="middle">
         <h1 class="title is-3">Sign In</h1>
+          <span v-html="loginContent"></span>
         <div class="inner box">
           <div class="field">
             <p class="control has-icons-left">
@@ -58,6 +59,7 @@ export default {
     return {
       email: "",
       password: "",
+      loginContent: null,
     };
   },
   methods: {
@@ -71,7 +73,7 @@ export default {
             that.$router.push({ name: "Home" });
           },
           (err) => {
-            alert("Oops," + err.message);
+            this.loginContent = '<div class="error-sign">'+err.message+'</div>'
           }
         );
     },
@@ -85,7 +87,7 @@ export default {
           that.$router.push({ name: "Home" });
         })
         .catch((err) => {
-          alert("Oops. " + err.message);
+          this.loginContent = '<div class="error-sign">'+err.message+'</div>'
         });
     },
   },
