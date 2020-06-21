@@ -62,21 +62,20 @@
         </div>
       </div>
       <div class="column" v-if="status === 1">
-        <button class="button is-loading borderless">Loading</button>        
-        <div>
-          Loading
-        </div>
-        <div v-if="status === -1">
-          No shops found near you!
-        </div>
-        <button
-          class="button is-info is-rounded is-outlined"
-          @click="search"
-          v-if="dragged"
-        >
-          Search this location!
-        </button>
+        <button class="button is-loading borderless">Loading</button>
+        <div>Loading</div>
       </div>
+      <div v-if="status === -1">
+        No shops found near you!
+        <i class="fa fa-frown" aria-hidden="true"></i>
+      </div>
+      <button
+        class="button is-info is-rounded is-outlined"
+        @click="search"
+        v-if="dragged"
+      >
+        Search this location!
+      </button>
 
       <div class="task-container column is-mobile is-centered is-one-thirds">
         <div
@@ -100,7 +99,7 @@
                   />
                 </figure>
               </div>
-              <div class="media-content">
+              <div class="media-content fixed-width-80">
                 <p class="title is-6 is-left">{{ mark.location }}</p>
                 <p class="subtitle is-6">
                   Wait: {{ convertToHours(mark.waitingTime) }} <br />
@@ -139,17 +138,17 @@
   margin: 0 auto;
 }
 
-.waiting{
-  margin: 0 auto;
-}
-
-.borderless{
+.borderless {
   border-color: white;
   padding: 0px;
 }
 
-.search{
+.search {
   margin-bottom: 7%;
+}
+
+.fixed-width-80{
+  width: 80%;
 }
 </style>
 
@@ -247,7 +246,7 @@ export default {
       let promises = [];
       this.dragged = false;
       this.status = 1;
-      this.markers = []
+      this.markers = [];
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
