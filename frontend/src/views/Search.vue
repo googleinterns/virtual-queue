@@ -1,72 +1,73 @@
 <template>
-  <div class="container has-text-centered">
-    <h1 class="title is-2">Store finder</h1>
-
-    <div class="columns is-gapless is-mobile is-centered">
-      <div class="field is-grouped search">
-        <form class="control has-icons-right" @submit="search">
-          <input
-            class="input is-rounded"
-            type="text"
-            v-model="searchItem"
-            style="border-width:2px;"
-            Placeholder="Grocery stores"
-          />
-          <div v-on:click="search">
-            <span class="icon is-medium is-right">
-              <i class="fa fa-search" style="color: black"></i>
-            </span>
-          </div>
-        </form>
+  <div class="search">
+    <div class="container has-text-centered">
+      <h1 class="title is-3">Store finder</h1>
+      <div class="columns is-gapless is-mobile is-centered">
+        <div class="field is-grouped">
+          <form class="control has-icons-right" @submit="search">
+            <input
+              class="input is-rounded"
+              type="text"
+              v-model="searchItem"
+              style="border-width:2px;"
+              Placeholder="Grocery stores"
+            />
+            <div v-on:click="search">
+              <span class="icon is-medium is-right">
+                <i class="fa fa-search" style="color: black"></i>
+              </span>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-    <div class="columns is-gapless is-mobile is-centered">
-      <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
-      <div class="column is-11">
-        <gmap-map
-          :center="center"
-          :zoom="10"
-          id="map"
-          ref="map"
-          @center_changed="updateCenter($event)"
-        >
-          <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
-          <gmap-marker
-            :key="index"
-            v-for="(m, index) in markers"
-            :position="m.position"
-            @click="navigateToQueuePage(m.id)"
-            :icon="getStoreMarker(index)"
-            @mouseover="setActive(index)"
-            @mouseout="setInactive"
-          ></gmap-marker>
-          <gmap-marker
-            :position="markerCenter"
-            :icon="getUserMarker()"
-          ></gmap-marker>
-          <gmap-info-window
-            v-for="(m, index) in markers"
-            :position="m.position"
-            :key="m.id"
-            :opened="activeIndex === index"
-            :options="{
-              pixelOffset: {
-                width: 0,
-                height: -35,
-              },
-            }"
+      <div class="columns is-gapless is-mobile is-centered">
+        <!-- Renders a map and iterates over markers to place them on the basis of lat and lng, setActive function used to highlight location on hover -->
+        <div class="column is-11">
+          <gmap-map
+            :center="center"
+            :zoom="10"
+            id="map"
+            ref="map"
+            @center_changed="updateCenter($event)"
           >
-            {{ m.location }}
-          </gmap-info-window>
-        </gmap-map>
+            <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
+            <gmap-marker
+              :key="index"
+              v-for="(m, index) in markers"
+              :position="m.position"
+              @click="navigateToQueuePage(m.id)"
+              :icon="getStoreMarker(index)"
+              @mouseover="setActive(index)"
+              @mouseout="setInactive"
+            ></gmap-marker>
+            <gmap-marker
+              :position="markerCenter"
+              :icon="getUserMarker()"
+            ></gmap-marker>
+            <gmap-info-window
+              v-for="(m, index) in markers"
+              :position="m.position"
+              :key="m.id"
+              :opened="activeIndex === index"
+              :options="{
+                pixelOffset: {
+                  width: 0,
+                  height: -35,
+                },
+              }"
+            >
+              {{ m.location }}
+            </gmap-info-window>
+          </gmap-map>
+        </div>
       </div>
-    </div>
-    <div class="column">
-      <div v-if="status === 1">
-        Loading..
+      <div class="column" v-if="status === 1">
+        <button class="button is-loading borderless">Loading</button>
+        <div>Loading</div>
       </div>
       <div v-if="status === -1">
         No shops found near you!
+        <i class="fa fa-frown" aria-hidden="true"></i>
       </div>
       <button
         class="button is-info is-rounded is-outlined"
@@ -75,44 +76,44 @@
       >
         Search this location!
       </button>
-    </div>
 
-    <div class="task-container column is-mobile is-centered is-one-thirds">
-      <div
-        v-for="(mark, index) in markers"
-        :key="mark.location"
-        :ref="`${mark.id}`"
-        :class="{ active: activeIndex === index }"
-        @mouseover="setActive(index)"
-        @mouseout="setInactive"
-        class="card results"
-        style="margin-bottom: 5px"
-      >
-        <div class="card-content">
-          <div class="media">
-            <div class="media-left">
-              <figure class="image">
-                <img
-                  :src="`${mark.img}`"
-                  alt="Placeholder image"
-                  style="width:70px; height: 70px;"
-                />
-              </figure>
-            </div>
-            <div class="media-content">
-              <p class="title is-6 is-left">{{ mark.location }}</p>
-              <p class="subtitle is-6">
-                Wait: {{ convertToHours(mark.waitingTime) }} <br />
-                Travel: {{ mark.travelTime }} mins
-              </p>
-            </div>
-            <div class="media-right column is-vcentered">
-              <button
-                class="button is-link is-small is-light"
-                @click="navigateToQueuePage(mark.id)"
-              >
-                View
-              </button>
+      <div class="task-container column is-mobile is-centered is-one-thirds">
+        <div
+          v-for="(mark, index) in markers"
+          :key="mark.location"
+          :ref="`${mark.id}`"
+          :class="{ active: activeIndex === index }"
+          @mouseover="setActive(index)"
+          @mouseout="setInactive"
+          class="card results"
+          style="margin-bottom: 5px"
+        >
+          <div class="card-content">
+            <div class="media">
+              <div class="media-left">
+                <figure class="image">
+                  <img
+                    :src="`${mark.img}`"
+                    alt="Placeholder image"
+                    style="width:70px; height: 70px;"
+                  />
+                </figure>
+              </div>
+              <div class="media-content fixed-width-80">
+                <p class="title is-6 is-left">{{ mark.location }}</p>
+                <p class="subtitle is-6">
+                  Wait: {{ convertToHours(mark.waitingTime) }} <br />
+                  Travel: {{ mark.travelTime }} mins
+                </p>
+              </div>
+              <div class="media-right column is-vcentered">
+                <button
+                  class="button is-link is-small is-light"
+                  @click="navigateToQueuePage(mark.id)"
+                >
+                  View
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -135,6 +136,19 @@
 #map {
   height: 200px;
   margin: 0 auto;
+}
+
+.borderless {
+  border-color: white;
+  padding: 0px;
+}
+
+.search {
+  margin-bottom: 7%;
+}
+
+.fixed-width-80{
+  width: 80%;
 }
 </style>
 
@@ -232,6 +246,7 @@ export default {
       let promises = [];
       this.dragged = false;
       this.status = 1;
+      this.markers = [];
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
