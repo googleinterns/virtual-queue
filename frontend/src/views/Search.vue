@@ -265,14 +265,6 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      // If queue is enabled at the store, obtain remaining fields of information
-                      // let distanceParams = {
-                      //   origins: center.lat + "," + center.lng,
-                      //   destinations: "place_id:" + localStore.place_id,
-                      //   departure_time: "now",
-                      //   key: process.env.VUE_APP_DISTANCE_API_KEY,
-                      // };
-
                       search_api.calculateTravelTime(localStore.place_id, that.$userLocation)
                         .then((response) => {
                           let imgVal =
