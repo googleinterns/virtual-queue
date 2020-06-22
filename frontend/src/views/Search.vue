@@ -155,7 +155,7 @@ import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import { waiting_time } from "../waitingtime";
-import { search_api } from "../searchApi"
+import { maps_api } from "../mapsApi"
 Vue.use(VueAxios, axios);
 
 export default {
@@ -177,7 +177,11 @@ export default {
   },
 
   mounted() {
-    search_api.geolocate(this);
+    maps_api.getPosition()
+    .then((location) => {
+      this.center = location;
+      this.markerCenter = location;
+    })
   },
 
   methods: {
@@ -264,8 +268,9 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      return search_api.calculateTravelTime(localStore.place_id, center)
+                      return maps_api.calculateTravelTime(localStore.place_id, center)
                         .then((response) => {
+                          console.log(response);
                           let imgVal =
                             "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
                           // Checks if location has an associated photo and assigns it accordingly. If not, uses default image.
