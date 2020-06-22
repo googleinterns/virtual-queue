@@ -49,8 +49,6 @@ firebase.auth().onAuthStateChanged(() => {
   }
 });
 
-Vue.prototype.$userLocation = null;
-
 Vue.use(VueGoogleMaps, {
   load: {
     key: process.env.VUE_APP_MAPS_API_KEY,

@@ -11,8 +11,10 @@
             'https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=' +
               storeId
           "
-          ><i class="fa fa-map-marker fa-2x" aria-hidden="true"></i
-        ></a>
+        >
+          <i class="fa fa-map-marker fa-2x" aria-hidden="true"></i>
+          <p>{{ travelTime }} away</p>
+        </a>
       </h3>
     </h3>
     <h3 v-if="phone != null"><font-awesome-icon icon="phone" /> {{ phone }}</h3>
@@ -117,6 +119,7 @@
 <script>
 import { database_call } from "../database.js";
 import { waiting_time } from "../waitingtime.js";
+import { maps_api } from "../mapsApi";
 import { Chart } from "highcharts-vue";
 
 export default {
@@ -140,6 +143,7 @@ export default {
       queuePosition: 0,
       tokenNumber: 0,
       isEnabled: null,
+      travelTime: null,
       waitingTime: 0,
       waitingTimeInHours: 0,
       waitingTimeInHoursUnenrolled: "0 minutes",
@@ -481,6 +485,12 @@ export default {
     this.userInit();
   },
   mounted() {
+    maps_api.getPosition().then((location) => {
+      maps_api.calculateTravelTime(this.storeId, location).then((response) => {
+        this.travelTime = response.data.rows[0].elements[0].duration.text;
+      });
+    });
+
     // Listening to changes in the queue
     database_call.setQueueIncListener(this.storeId, this.queueInc);
     database_call.setQueueDecListener(this.storeId, this.queueDec);
