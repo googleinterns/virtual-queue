@@ -7,18 +7,20 @@ import "./../node_modules/bulma/css/bulma.css";
 import HighchartsVue from "highcharts-vue";
 import Highcharts from "highcharts";
 import Annotations from "highcharts/modules/annotations.js";
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { dom } from '@fortawesome/fontawesome-svg-core'
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { dom } from "@fortawesome/fontawesome-svg-core";
+import VueClipboard from "vue-clipboard2";
 
-dom.watch()
+dom.watch();
 
-library.add(fas)
-Vue.component('font-awesome-icon', FontAwesomeIcon)
+library.add(fas);
+Vue.component("font-awesome-icon", FontAwesomeIcon);
 
 Vue.use(HighchartsVue);
 Annotations(Highcharts);
+Vue.use(VueClipboard);
 
 Vue.config.productionTip = false;
 let app = "";
