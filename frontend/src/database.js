@@ -238,10 +238,12 @@ export const database_call = {
     let dbRef = firebase.database().ref();
     dbRef.child("Store/" + storeId).once("value", (snap) => {
       var store = {};
-      store["StoreName"] = snap.val().StoreName;
       store["IsEnabled"] = snap.val().IsEnabled;
       store["AvgServeTime"] = snap.val().AvgServeTime;
       store["QueueLength"] = snap.val().QueueLength;
+      store["Address"] = snap.val().Address;
+      store["Phone"] = snap.val().Phone;
+      store["StoreName"] = snap.val().StoreName;
       callBack(store);
     });
   },
