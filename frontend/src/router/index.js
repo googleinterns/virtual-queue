@@ -45,6 +45,10 @@ const routes = [
     component: Error404,
   },
   {
+    path: "/",
+    redirect: "/search"
+  },
+  {
     path: "*",
     redirect: "/404",
   },
