@@ -227,13 +227,12 @@ export default {
     },
 
     search: function() {
-      // let center = this.markerCenter;
+      let center = this.markerCenter;
       var queues = [];
       let promises = [];
       this.dragged = false;
       this.status = 1;
       this.markers = [];
-      var that = this;
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
@@ -265,7 +264,7 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      search_api.calculateTravelTime(localStore.place_id, that.$userLocation)
+                      return search_api.calculateTravelTime(localStore.place_id, center)
                         .then((response) => {
                           let imgVal =
                             "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
