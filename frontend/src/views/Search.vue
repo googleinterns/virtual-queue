@@ -155,6 +155,7 @@ import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import { waiting_time } from "../waitingtime";
+import { search_api } from "../searchApi"
 Vue.use(VueAxios, axios);
 
 export default {
@@ -176,7 +177,7 @@ export default {
   },
 
   mounted() {
-    this.geolocate();
+    search_api.geolocate(this);
   },
 
   methods: {
@@ -221,29 +222,18 @@ export default {
       this.currentPlace = place;
     },
 
-    geolocate: function() {
-      // Gets user's location and centers the map around that
-      navigator.geolocation.getCurrentPosition((position) => {
-        this.center = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-
-        this.markerCenter = this.center;
-      });
-    },
-
     convertToHours(num) {
       return waiting_time.convertToHours(num);
     },
 
     search: function() {
-      let center = this.markerCenter;
+      // let center = this.markerCenter;
       var queues = [];
       let promises = [];
       this.dragged = false;
       this.status = 1;
       this.markers = [];
+      var that = this;
 
       if (this.searchItem == null)
         // Does not make a request if query is empty
@@ -252,7 +242,7 @@ export default {
       let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
         radius: "1000",
-        name: this.searchItem,
+        query: this.searchItem,
         key: process.env.VUE_APP_MAPS_API_KEY,
       };
 
@@ -276,17 +266,14 @@ export default {
                   .then(function(snap) {
                     if (snap.val()) {
                       // If queue is enabled at the store, obtain remaining fields of information
-                      let distanceParams = {
-                        origins: center.lat + "," + center.lng,
-                        destinations: "place_id:" + localStore.place_id,
-                        departure_time: "now",
-                        key: process.env.VUE_APP_DISTANCE_API_KEY,
-                      };
+                      // let distanceParams = {
+                      //   origins: center.lat + "," + center.lng,
+                      //   destinations: "place_id:" + localStore.place_id,
+                      //   departure_time: "now",
+                      //   key: process.env.VUE_APP_DISTANCE_API_KEY,
+                      // };
 
-                      return axios
-                        .get(process.env.VUE_APP_DISTANCE_URL, {
-                          params: distanceParams,
-                        })
+                      search_api.calculateTravelTime(localStore.place_id, that.$userLocation)
                         .then((response) => {
                           let imgVal =
                             "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
