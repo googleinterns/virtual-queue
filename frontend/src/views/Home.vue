@@ -38,6 +38,7 @@
               <div v-if="store.State === 0" class="column">
                 <button
                   class="button is-link is-light is-centered is-small"
+                  :disabled="!store.IsLeaveQueueEnabled"
                   @click="leaveQueue(store.StoreId, index)"
                 >
                   <span class="icon is-small">
@@ -49,6 +50,7 @@
               <div v-else class="column">
                 <button
                   class="button is-danger is-small is-light"
+                  :disabled="!store.IsLeaveQueueEnabled"
                   @click="leaveQueue(store.StoreId, index)"
                 >
                   Leave Queue
@@ -148,11 +150,12 @@ export default {
 
     // remove user from queue
     leaveQueue: function(storeId, key) {
+      // disable leave queue button
+      var store = this.subscribedStores.find((store) => store.StoreId == storeId);
+      store.IsLeaveQueueEnabled = false;
+
       var storeKey = this.subscribedStores[key].StoreKey;
       var userKey = this.subscribedStores[key].UserKey;
-
-      // delete store from local array subscribedStores
-      delete this.subscribedStores[key];
 
       // remove user from queue - db call
       database_call.removeFromQueue(
@@ -228,6 +231,7 @@ export default {
                       UserKey: user.currentUserKey,
                       StoreKey: storeKey,
                       TravelTime: 0,
+                      IsLeaveQueueEnabled: true,
                     };
                     currentStore["State"] = that.getSeverityState(currentStore);
                     subscribedStores.push(currentStore);
