@@ -5,7 +5,12 @@
       <h3 class="column is-8">
         {{ address }}
         <br />
-        <a @click="getLocationLink" id="location" href=""
+        <a
+          id="location"
+          v-bind:href="
+            'https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=' +
+              storeId
+          "
           ><i class="fa fa-map-marker fa-2x" aria-hidden="true"></i
         ></a>
       </h3>
@@ -13,6 +18,7 @@
     <h3 v-if="phone != null"><font-awesome-icon icon="phone" /> {{ phone }}</h3>
     <br />
     <br />
+
     <!--If queue for the store is enabled-->
     <div class="is-size-5" v-if="isEnabled">
       <!--If userInfo is loaded also means person is logged in-->
@@ -37,7 +43,7 @@
               id="shareIcon"
               class="button is-warning is-light"
               type="button"
-              v-clipboard:copy="share"
+              v-clipboard:copy="textToShare"
               v-clipboard:success="onShareCopy"
               v-clipboard:error="onCopyError"
             >
@@ -120,14 +126,11 @@ export default {
   },
   data() {
     return {
-      share: null,
-      copy: "Token",
+      textToShare: null,
       storeId: this.$route.params.StoreId,
-      loaded: false,
       storeName: null,
       address: null,
       phone: null,
-      locationOn: false,
       uid: null,
       currentUserKey: null,
       currentStoreKey: null,
@@ -142,7 +145,6 @@ export default {
       waitingTimeInHoursUnenrolled: "0 minutes",
       expectedTime: 0,
       expectedTimeUnenrolled: null,
-      locationLinkSet: false,
       chartOptions: {
         chart: { type: "areaspline" },
         title: {
@@ -207,7 +209,6 @@ export default {
             color: "#A52A2A",
             fillOpacity: 0.1,
             showInLegend: false,
-            description: "Hello",
           },
         ],
       },
@@ -231,7 +232,7 @@ export default {
     },
     // The content copied when share button is clicked
     shareContent: function() {
-      this.share =
+      this.textToShare =
         this.storeName +
         "\n" +
         this.address +
@@ -250,16 +251,6 @@ export default {
         that.storeName = store.StoreName;
         that.phone = store.Phone;
       });
-    },
-    // Getting location link of store
-    getLocationLink: function() {
-      document.getElementById("location").href =
-        "https://www.google.com/maps/place/?q=place_id:" + this.storeId;
-    },
-    // Function to get current user id and null in case no user is logged in
-    getUserId: function() {
-      this.uid = database_call.getUserId();
-      this.isUserLoaded = false;
     },
     // Function to populate intial data values
     userInit: function() {
@@ -499,8 +490,6 @@ export default {
   },
   mounted() {
     // Listening to changes in the queue
-    database_call.setLoginListener(this.getUserId);
-    this.storeInit();
     database_call.setQueueIncListener(this.storeId, this.queueInc);
     database_call.setQueueDecListener(this.storeId, this.queueDec);
     database_call.setPowerCurveListener(this.storeId, this.makeGraph);
