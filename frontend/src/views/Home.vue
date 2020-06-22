@@ -43,6 +43,7 @@ export default {
   components: {},
   data() {
     return {
+      uid: null,
       ownedStores: [],
       subscribedStores: [],
     };
