@@ -4,8 +4,8 @@ import VueAxios from "vue-axios";
 Vue.use(VueAxios, axios);
 
 export const search_api = {
-  calculateTravelTime: function(place_id) {
-    let center = this.$userLocation;
+  calculateTravelTime: function(place_id, center) {
+    // let center = this.$userLocation;
     let distanceParams = {
       origins: center.lat + "," + center.lng,
       destinations: "place_id:" + place_id,
@@ -23,13 +23,17 @@ export const search_api = {
       });
   },
 
-  geolocate: function() {
+  geolocate: function(that) {
+
     navigator.geolocation.getCurrentPosition((position) => {
       let userLocation = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
-      return userLocation;
+      
+      that.center = userLocation;
+      that.markerCenter = userLocation;
     });
   },
+
 };
