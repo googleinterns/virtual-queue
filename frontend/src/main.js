@@ -57,3 +57,5 @@ Vue.use(VueGoogleMaps, {
 });
 
 Vue.use(require("vue-moment"));
+
+

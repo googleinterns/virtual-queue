@@ -28,21 +28,29 @@
         <div class="column is-11">
           <gmap-map
             :center="center"
-            :zoom="10"
+            :zoom="zoom"
             id="map"
             ref="map"
             @center_changed="updateCenter($event)"
+            @zoom_changed="updateZoom($event)"
           >
             <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
-            <gmap-marker
+            <gmap-custom-marker
               :key="index"
               v-for="(m, index) in markers"
-              :position="m.position"
+              :marker="m.position"
               @click="navigateToQueuePage(m.id)"
               :icon="getStoreMarker(index)"
               @mouseover="setActive(index)"
               @mouseout="setInactive"
-            ></gmap-marker>
+            >
+            <div class="zindex zindex-b">
+                    <center>
+                        <b><p>{{ convertToHours(m.waitingTime) }}</p></b>
+                    </center>
+                </div>
+                <div class="below"></div>
+            </gmap-custom-marker>
             <gmap-marker
               :position="markerCenter"
               :icon="getUserMarker()"
@@ -137,7 +145,7 @@
 }
 
 #map {
-  height: 200px;
+  height: 350px;
   margin: 0 auto;
 }
 
@@ -145,6 +153,38 @@
   border-color: white;
   padding: 0px;
 }
+
+.fixed-width-80 {
+  width: 80%;
+}
+
+.zindex {
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.6);
+    border-bottom: none;
+    /* border-radius: 4px;
+    box-shadow: 3px 3px 3px grey; */
+    min-height: 20px;
+    min-width: 20px;
+    color: #fff;
+}
+
+.zindex-a {
+    background-color: #000080;
+}
+.zindex-b {
+    background-color: #3e628c;
+}
+
+.below{
+    border: 5px solid transparent;
+    border-top-color: #3e628c;
+    height: 0;
+    margin: 0 auto;
+    width: 0;
+
+}
+
 </style>
 
 <script>
@@ -152,12 +192,17 @@ import Vue from "vue";
 import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
+import GmapCustomMarker from "vue2-gmap-custom-marker";
 import { waiting_time } from "../waitingtime";
 import { maps_api } from "../mapsApi";
 Vue.use(VueAxios, axios);
+// Vue.use(GmapCustomMarker, "gmap-custom-marker");
 
 export default {
   name: "Search",
+  components:{
+    GmapCustomMarker
+  },
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     var locationDisabledError = maps_api.getLocationDisabledError();
@@ -175,6 +220,7 @@ export default {
       status: null,
       locationOn: null,
       locationDisabledError: locationDisabledError,
+      zoom: 11,
     };
   },
 
@@ -222,6 +268,14 @@ export default {
       if (this.searchItem != null) this.dragged = true;
     },
 
+    updateZoom(event) {
+      // this.zoom = event;
+      // console.log(event);
+      this.radius = 5000 * (20 - event);
+      console.log(this.radius);
+      console.log(this.$refs.map.$mapObject.getBounds());
+    },
+
     navigateToQueuePage(id) {
       this.$router.replace("queue/" + id);
     },
@@ -249,7 +303,7 @@ export default {
       // Parameters in the required format for Text Search API
       let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
-        radius: "1000",
+        radius: this.radius,
         query: this.searchItem,
         key: process.env.VUE_APP_MAPS_API_KEY,
       };
