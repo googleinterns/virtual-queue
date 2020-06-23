@@ -7,6 +7,8 @@ export const maps_api = {
 
   // Queries Maps Distance Matrix API for the time taken to travel from the user's location to the store
   calculateTravelTime: function(placeId, center) {
+    
+    // Parameters in the format required for Maps API
     let distanceParams = {
       origins: center.lat + "," + center.lng,
       destinations: "place_id:" + placeId,
@@ -40,4 +42,8 @@ export const maps_api = {
         console.log(error.message);
       });
   },
+
+  getLocationDisabledError: function(){
+    return "Kindly enable your location for the best experience of our app"
+  }
 };

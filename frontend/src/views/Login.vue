@@ -73,7 +73,7 @@ export default {
             that.$router.push({ name: "Home" });
           },
           (err) => {
-            this.loginContent = '<div class="error-sign">'+err.message+'</div>'
+            this.loginContent = '<div class="error-sign width-80">'+err.message+'</div>'
           }
         );
     },
@@ -87,7 +87,7 @@ export default {
           that.$router.push({ name: "Home" });
         })
         .catch((err) => {
-          this.loginContent = '<div class="error-sign">'+err.message+'</div>'
+          this.loginContent = '<div class="error-sign width-80">'+err.message+'</div>'
         });
     },
   },

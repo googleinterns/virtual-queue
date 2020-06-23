@@ -73,7 +73,7 @@ export default {
           },
           (err) => {
             this.signupContent =
-              '<div class="error-sign">' + err.message + "</div>";
+              '<div class="error-sign width-80">' + err.message + "</div>";
           }
         );
     },

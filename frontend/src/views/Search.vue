@@ -2,8 +2,8 @@
   <div class="search">
     <div class="container has-text-centered">
       <h1 class="title is-3">Store finder</h1>
-      <h1 class="subtitle is-6 error-sign width-80" v-if="locationOn==false">
-        Kindly enable your location for the best experience of our app
+      <h1 class="subtitle is-6 error-sign width-80" v-if="locationOn == false">
+        {{ locationDisabledError }}
       </h1>
       <div class="columns is-gapless is-mobile is-centered">
         <div class="field is-grouped">
@@ -164,6 +164,8 @@ export default {
   name: "Search",
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
+    var locationDisabledError = maps_api.getLocationDisabledError();
+
     return {
       center: center,
       markerCenter: center,
@@ -176,6 +178,7 @@ export default {
       dragged: false,
       status: null,
       locationOn: null,
+      locationDisabledError: locationDisabledError,
     };
   },
 
@@ -276,7 +279,6 @@ export default {
                       return maps_api
                         .calculateTravelTime(localStore.place_id, center)
                         .then((response) => {
-                          console.log(response);
                           let imgVal =
                             "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
                           // Checks if location has an associated photo and assigns it accordingly. If not, uses default image.
