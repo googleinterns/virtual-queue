@@ -102,7 +102,7 @@
                   />
                 </figure>
               </div>
-              <div class="media-content fixed-width-80">
+              <div class="media-content width-80">
                 <p class="title is-6 is-left">{{ mark.location }}</p>
                 <p class="subtitle is-6">
                   Wait: {{ convertToHours(mark.waitingTime) }} <br />
@@ -144,10 +144,6 @@
 .borderless {
   border-color: white;
   padding: 0px;
-}
-
-.fixed-width-80 {
-  width: 80%;
 }
 </style>
 
@@ -250,6 +246,7 @@ export default {
         // Does not make a request if query is empty
         return;
 
+      // Parameters in the required format for Text Search API
       let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
         radius: "1000",
@@ -257,10 +254,11 @@ export default {
         key: process.env.VUE_APP_MAPS_API_KEY,
       };
 
+      // Requests the Maps Places API (Text Search API) for list of nearby places
       axios
         .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
         .then((response) => {
-          console.log(response);
+          // Iterate over each store response from Places API
           for (var i = 0; i < response.data.results.length; i++) {
             var store = response.data.results[i];
             let dbRef = firebase.database().ref();
@@ -276,6 +274,7 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
+                      // Returns travel time between user and store location   
                       return maps_api
                         .calculateTravelTime(localStore.place_id, center)
                         .then((response) => {
@@ -314,8 +313,9 @@ export default {
               );
             }
           }
+          
+          // Wait for all promises to return and then sort the queue
           Promise.all(promises).then(() => {
-            // Wait for all promises to return and then sort the queue
             if (queues.length == 0) this.status = -1;
             else this.status = 0;
 
