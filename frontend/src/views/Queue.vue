@@ -13,7 +13,8 @@
           "
         >
           <i class="fa fa-map-marker fa-2x" aria-hidden="true"></i>
-          <p>{{ travelTime }} away</p>
+          <p>{{ travelTime }} </p>
+          <p class="error-sign" v-if="locationOn == false">Kindly enable your location for the best experience of our app</p>
         </a>
       </h3>
     </h3>
@@ -144,6 +145,7 @@ export default {
       tokenNumber: 0,
       isEnabled: null,
       travelTime: null,
+      locationOn: null,
       waitingTime: 0,
       waitingTimeInHours: 0,
       waitingTimeInHoursUnenrolled: "0 minutes",
@@ -492,9 +494,16 @@ export default {
   },
   mounted() {
     maps_api.getPosition().then((location) => {
-      maps_api.calculateTravelTime(this.storeId, location).then((response) => {
+      if(location){
+        maps_api.calculateTravelTime(this.storeId, location).then((response) => {
         this.travelTime = response.data.rows[0].elements[0].duration.text;
+        this.locationOn = true;
       });
+    }
+    else{
+      this.locationOn = false;
+    }
+      
     });
 
     // Listening to changes in the queue

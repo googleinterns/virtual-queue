@@ -1,5 +1,5 @@
 <template>
-  <div class="page-not-found">
+  <div class="width-80">
     <h1 class="title is-3">404</h1>
     <div>
       <h1 class="subtitle is-5">Oops! Looks like you are wandering outside.</h1>
@@ -12,9 +12,3 @@
   </div>
 </template>
 
-<style>
-.page-not-found {
-  width: 80%;
-  margin: 0 auto;
-}
-</style>

@@ -46,12 +46,12 @@ const routes = [
   },
   {
     path: "/",
-    redirect: "/search"
+    component: Search,
   },
   {
     path: "*",
-    redirect: "/404",
-  },
+    redirect: "/404"
+  }
 ];
 
 const router = new VueRouter({

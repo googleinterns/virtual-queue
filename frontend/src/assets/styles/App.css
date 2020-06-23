@@ -52,9 +52,14 @@
 }
 
 .error-sign{
-  color: red;
+  color: red !important;
 }
 
 .success-sign{
   color: green;
+}
+
+.width-80{
+  width: 80%;
+  margin: 0 auto;
 }
