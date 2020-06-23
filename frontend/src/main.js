@@ -48,6 +48,8 @@ firebase.auth().onAuthStateChanged(() => {
     }).$mount("#app");
   }
 });
+
+// Initializing Vuejs maps library
 Vue.use(VueGoogleMaps, {
   load: {
     key: process.env.VUE_APP_MAPS_API_KEY,

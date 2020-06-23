@@ -2,6 +2,9 @@
   <div class="search">
     <div class="container has-text-centered">
       <h1 class="title is-3">Store finder</h1>
+      <h1 class="subtitle is-6 error-sign width-80" v-if="locationOn == false">
+        {{ locationDisabledError }}
+      </h1>
       <div class="columns is-gapless is-mobile is-centered">
         <div class="field is-grouped">
           <form class="control has-icons-right" @submit="search">
@@ -99,7 +102,7 @@
                   />
                 </figure>
               </div>
-              <div class="media-content fixed-width-80">
+              <div class="media-content width-80">
                 <p class="title is-6 is-left">{{ mark.location }}</p>
                 <p class="subtitle is-6">
                   Wait: {{ convertToHours(mark.waitingTime) }} <br />
@@ -142,11 +145,6 @@
   border-color: white;
   padding: 0px;
 }
-
-
-.fixed-width-80{
-  width: 80%;
-}
 </style>
 
 <script>
@@ -155,12 +153,15 @@ import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import { waiting_time } from "../waitingtime";
+import { maps_api } from "../mapsApi";
 Vue.use(VueAxios, axios);
 
 export default {
   name: "Search",
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
+    var locationDisabledError = maps_api.getLocationDisabledError();
+
     return {
       center: center,
       markerCenter: center,
@@ -172,11 +173,19 @@ export default {
       windowOpen: false,
       dragged: false,
       status: null,
+      locationOn: null,
+      locationDisabledError: locationDisabledError,
     };
   },
 
   mounted() {
-    this.geolocate();
+    maps_api.getPosition().then((location) => {
+      if (location) {
+        this.center = location;
+        this.markerCenter = location;
+        this.locationOn = true;
+      } else this.locationOn = false;
+    });
   },
 
   methods: {
@@ -221,18 +230,6 @@ export default {
       this.currentPlace = place;
     },
 
-    geolocate: function() {
-      // Gets user's location and centers the map around that
-      navigator.geolocation.getCurrentPosition((position) => {
-        this.center = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-
-        this.markerCenter = this.center;
-      });
-    },
-
     convertToHours(num) {
       return waiting_time.convertToHours(num);
     },
@@ -249,17 +246,19 @@ export default {
         // Does not make a request if query is empty
         return;
 
+      // Parameters in the required format for Text Search API
       let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
         radius: "1000",
-        name: this.searchItem,
+        query: this.searchItem,
         key: process.env.VUE_APP_MAPS_API_KEY,
       };
 
+      // Requests the Maps Places API (Text Search API) for list of nearby places
       axios
         .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
         .then((response) => {
-          console.log(response);
+          // Iterate over each store response from Places API
           for (var i = 0; i < response.data.results.length; i++) {
             var store = response.data.results[i];
             let dbRef = firebase.database().ref();
@@ -275,18 +274,9 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      // If queue is enabled at the store, obtain remaining fields of information
-                      let distanceParams = {
-                        origins: center.lat + "," + center.lng,
-                        destinations: "place_id:" + localStore.place_id,
-                        departure_time: "now",
-                        key: process.env.VUE_APP_DISTANCE_API_KEY,
-                      };
-
-                      return axios
-                        .get(process.env.VUE_APP_DISTANCE_URL, {
-                          params: distanceParams,
-                        })
+                      // Returns travel time between user and store location   
+                      return maps_api
+                        .calculateTravelTime(localStore.place_id, center)
                         .then((response) => {
                           let imgVal =
                             "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
@@ -323,8 +313,9 @@ export default {
               );
             }
           }
+          
+          // Wait for all promises to return and then sort the queue
           Promise.all(promises).then(() => {
-            // Wait for all promises to return and then sort the queue
             if (queues.length == 0) this.status = -1;
             else this.status = 0;
 
