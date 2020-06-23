@@ -31,26 +31,33 @@
             :zoom="zoom"
             id="map"
             ref="map"
-            @center_changed="updateCenter($event)"
+            @drag="updateCenter()"
             @zoom_changed="updateZoom($event)"
           >
             <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
+            <span :key="index"
+              v-for="(m, index) in markers">
             <gmap-custom-marker
-              :key="index"
-              v-for="(m, index) in markers"
+              
               :marker="m.position"
-              @click="navigateToQueuePage(m.id)"
-              :icon="getStoreMarker(index)"
-              @mouseover="setActive(index)"
-              @mouseout="setInactive"
             >
-            <div class="zindex zindex-b">
-                    <center>
-                        <b><p>{{ convertToHours(m.waitingTime) }}</p></b>
-                    </center>
-                </div>
-                <div class="below"></div>
+            <div class="marker">
+              <div
+                class="marker-top"
+                @click="navigateToQueuePage(m.id)"
+                @mouseover="setActive(index)"
+                @mouseout="setInactive"
+              >
+                <center>
+                  <b
+                    ><p>{{ convertToHours(m.waitingTime) }}</p></b
+                  >
+                </center>
+              </div>
+              <div class="marker-bottom" :class="{ 'marker-bottom-active': activeIndex === index }"></div>
+            </div> 
             </gmap-custom-marker>
+            </span>
             <gmap-marker
               :position="markerCenter"
               :icon="getUserMarker()"
@@ -91,7 +98,7 @@
       <div class="task-container column is-mobile is-centered is-one-thirds">
         <div
           v-for="(mark, index) in markers"
-          :key="mark.location"
+          :key="mark.id"
           :ref="`${mark.id}`"
           :class="{ active: activeIndex === index }"
           @mouseover="setActive(index)"
@@ -158,31 +165,36 @@
   width: 80%;
 }
 
-.zindex {
-    padding: 5px;
-    border: 1px solid rgba(255,255,255,.6);
-    border-bottom: none;
-    /* border-radius: 4px;
-    box-shadow: 3px 3px 3px grey; */
-    min-height: 20px;
-    min-width: 20px;
-    color: #fff;
+.marker-top {
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 5px;
+  border-bottom: none;
+  min-height: 20px;
+  min-width: 20px;
+  color: #fff;
+  background-color: #3e628c;
 }
 
-.zindex-a {
-    background-color: #000080;
-}
-.zindex-b {
-    background-color: #3e628c;
+.marker-top:hover {
+  background: #e75480;
+  min-height: 25px;
+  min-width: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 330ms ease-in-out;
 }
 
-.below{
-    border: 5px solid transparent;
-    border-top-color: #3e628c;
-    height: 0;
-    margin: 0 auto;
-    width: 0;
+.marker-bottom {
+  border: 5px solid transparent;
+  border-top-color: #3e628c;
+  height: 0;
+  margin: 0 auto;
+  width: 0;
+}
 
+.marker-bottom-active{
+  border-top-color: #e75480;
 }
 
 </style>
@@ -196,12 +208,11 @@ import GmapCustomMarker from "vue2-gmap-custom-marker";
 import { waiting_time } from "../waitingtime";
 import { maps_api } from "../mapsApi";
 Vue.use(VueAxios, axios);
-// Vue.use(GmapCustomMarker, "gmap-custom-marker");
 
 export default {
   name: "Search",
-  components:{
-    GmapCustomMarker
+  components: {
+    GmapCustomMarker,
   },
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
@@ -220,7 +231,7 @@ export default {
       status: null,
       locationOn: null,
       locationDisabledError: locationDisabledError,
-      zoom: 11,
+      zoom: 14,
     };
   },
 
@@ -259,21 +270,19 @@ export default {
       };
     },
 
-    updateCenter(event) {
+    updateCenter() {
       this.markerCenter = {
-        lat: event.lat(),
-        lng: event.lng(),
+        lat: this.$refs.map.$mapObject.getCenter().lat(),
+        lng: this.$refs.map.$mapObject.getCenter().lng(),
       };
 
       if (this.searchItem != null) this.dragged = true;
     },
 
     updateZoom(event) {
-      // this.zoom = event;
-      // console.log(event);
-      this.radius = 5000 * (20 - event);
+      this.radius = Math.max(1000 * (18 - event),1000);
       console.log(this.radius);
-      console.log(this.$refs.map.$mapObject.getBounds());
+      // console.log(this.$refs.map.$mapObject.getBounds());
     },
 
     navigateToQueuePage(id) {
@@ -287,6 +296,14 @@ export default {
     convertToHours(num) {
       return waiting_time.convertToHours(num);
     },
+
+    // autoCenter(){
+    //   var bounds = this.$refs.map.$mapObject.getBounds();
+    //   for(var i = 0; i < this.markers.length; i++)
+    //     bounds.extend(this.markers[i].position);
+      
+    //   this.$refs.map.$mapObject.fitBounds(bounds);
+    // },
 
     search: function() {
       let center = this.markerCenter;
@@ -328,7 +345,7 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      // Returns travel time between user and store location   
+                      // Returns travel time between user and store location
                       return maps_api
                         .calculateTravelTime(localStore.place_id, center)
                         .then((response) => {
@@ -367,7 +384,7 @@ export default {
               );
             }
           }
-          
+
           // Wait for all promises to return and then sort the queue
           Promise.all(promises).then(() => {
             if (queues.length == 0) this.status = -1;
@@ -381,6 +398,7 @@ export default {
               return aTime - bTime;
             });
             this.markers = queues;
+            // this.autoCenter();
           });
         });
     },

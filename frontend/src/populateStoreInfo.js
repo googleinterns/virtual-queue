@@ -26,7 +26,8 @@ const rl = readline.createInterface({
 const USER_ID = "2L2GVG7rIPZojeSEixUWDdsu2Eh1";
 
 rl.question("Please enter your location ", function(location) {
-  let shops = ["liquor", "food", "pizza", "restaurant", "medicine"];
+  // let shops = ["liquor", "grocery", "food", "pizza", "restaurant", "medicine"];
+  let shops = ["grocery"]
   // Iterates over various types of common shops
   for (var i = 0; i < shops.length; i++) {
     // Requests Places Search API for relevant stores near input location
