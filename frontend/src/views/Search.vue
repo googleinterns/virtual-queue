@@ -2,6 +2,9 @@
   <div class="search">
     <div class="container has-text-centered">
       <h1 class="title is-3">Store finder</h1>
+      <h1 class="subtitle is-6 error-sign width-80" v-if="locationOn==false">
+        Kindly enable your location for the best experience of our app
+      </h1>
       <div class="columns is-gapless is-mobile is-centered">
         <div class="field is-grouped">
           <form class="control has-icons-right" @submit="search">
@@ -143,8 +146,7 @@
   padding: 0px;
 }
 
-
-.fixed-width-80{
+.fixed-width-80 {
   width: 80%;
 }
 </style>
@@ -155,7 +157,7 @@ import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import { waiting_time } from "../waitingtime";
-import { maps_api } from "../mapsApi"
+import { maps_api } from "../mapsApi";
 Vue.use(VueAxios, axios);
 
 export default {
@@ -173,15 +175,18 @@ export default {
       windowOpen: false,
       dragged: false,
       status: null,
+      locationOn: null,
     };
   },
 
   mounted() {
-    maps_api.getPosition()
-    .then((location) => {
-      this.center = location;
-      this.markerCenter = location;
-    })
+    maps_api.getPosition().then((location) => {
+      if (location) {
+        this.center = location;
+        this.markerCenter = location;
+        this.locationOn = true;
+      } else this.locationOn = false;
+    });
   },
 
   methods: {
@@ -268,7 +273,8 @@ export default {
                   .once("value")
                   .then(function(snap) {
                     if (snap.val()) {
-                      return maps_api.calculateTravelTime(localStore.place_id, center)
+                      return maps_api
+                        .calculateTravelTime(localStore.place_id, center)
                         .then((response) => {
                           console.log(response);
                           let imgVal =

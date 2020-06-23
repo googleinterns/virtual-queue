@@ -36,8 +36,8 @@ export const maps_api = {
         };
         return userLocation;
       })
-      .catch(() => {
-        alert("Kindly enable location for the best experience of our application.");
+      .catch((error) => {
+        console.log(error.message);
       });
   },
 };
