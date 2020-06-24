@@ -31,32 +31,31 @@
             :zoom="zoom"
             id="map"
             ref="map"
-            @drag="updateMarkerCenter()" 
+            @drag="updateMarkerCenter()"
             @zoom_changed="updateRadius($event)"
           >
             <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
-            <span :key="index"
-              v-for="(m, index) in markers">
-            <gmap-custom-marker
-              
-              :marker="m.position"
-            >
-            <div class="marker">
-              <div
-                class="marker-top"
-                @click="navigateToQueuePage(m.id)"
-                @mouseover="setActive(index)"
-                @mouseout="setInactive"
-              >
-                <center>
-                  <b
-                    ><p>{{ convertToHours(m.waitingTime) }}</p></b
+            <span :key="index" v-for="(m, index) in markers">
+              <gmap-custom-marker :marker="m.position">
+                <div class="marker">
+                  <div
+                    class="marker-top"
+                    @click="navigateToQueuePage(m.id)"
+                    @mouseover="setActive(index)"
+                    @mouseout="setInactive"
                   >
-                </center>
-              </div>
-              <div class="marker-bottom" :class="{ 'marker-bottom-active': activeIndex === index }"></div>
-            </div> 
-            </gmap-custom-marker>
+                    <center>
+                      <b
+                        ><p>{{ convertToHours(m.waitingTime) }}</p></b
+                      >
+                    </center>
+                  </div>
+                  <div
+                    class="marker-bottom"
+                    :class="{ 'marker-bottom-active': activeIndex === index }"
+                  ></div>
+                </div>
+              </gmap-custom-marker>
             </span>
             <gmap-marker
               :position="markerCenter"
@@ -193,10 +192,9 @@
   width: 0;
 }
 
-.marker-bottom-active{
+.marker-bottom-active {
   border-top-color: #e75480;
 }
-
 </style>
 
 <script>
@@ -217,8 +215,21 @@ export default {
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     var locationDisabledError = maps_api.getLocationDisabledError();
-    // Map radius corresponsding to zoom level 
-    var zoomToRadiusDict = {20: 100, 19: 250, 18: 500, 17:1000, 16: 1000, 15: 1000, 14: 1500, 13: 2000, 12: 5000, 11: 10000, 10: 25000, 9: 50000}
+    // Map radius corresponsding to zoom level
+    var zoomToRadiusDict = {
+      20: 100,
+      19: 250,
+      18: 500,
+      17: 1000,
+      16: 1000,
+      15: 1000,
+      14: 1500,
+      13: 2000,
+      12: 5000,
+      11: 10000,
+      10: 25000,
+      9: 50000,
+    };
     return {
       center: center,
       markerCenter: center,
@@ -283,13 +294,11 @@ export default {
       if (this.searchItem != null) this.dragged = true;
     },
 
+    // Updates the radius according to zoom level
     updateRadius(event) {
-      if(event <= 8)
-        this.radius = 50000;
-      else if(event >= 21)
-        this.radius = 100;
-      else
-        this.radius = this.zoomToRadiusDict[event];
+      if (event <= 8) this.radius = 50000;
+      else if (event >= 21) this.radius = 100;
+      else this.radius = this.zoomToRadiusDict[event];
     },
 
     navigateToQueuePage(id) {
@@ -304,13 +313,13 @@ export default {
       return waiting_time.convertToHours(num);
     },
 
-    // Auto centers the map when new markers are added 
-    autoCenter(){
+    // Auto centers the map when new markers are added
+    autoCenter() {
       this.$refs.map.$mapObject.setCenter(this.markers[0].position);
       var bounds = this.$refs.map.$mapObject.getBounds();
-      for(var i = 0; i < this.markers.length; i++)
+      for (var i = 0; i < this.markers.length; i++)
         bounds.extend(this.markers[i].position);
-      
+
       this.$refs.map.$mapObject.fitBounds(bounds);
     },
 
@@ -338,7 +347,6 @@ export default {
       axios
         .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
         .then((response) => {
-          console.log(response);
           // Iterate over each store response from Places API
           for (var i = 0; i < response.data.results.length; i++) {
             var store = response.data.results[i];
