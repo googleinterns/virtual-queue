@@ -11,6 +11,16 @@
         class="card results is-mobile"
         style="margin-bottom: 10px"
       >
+        <div>
+          <p
+            class="subtitle is-6"
+            style="color: #257942"
+            v-if="!store.IsLeaveQueueEnabled"
+          >
+            You have been served! <br />
+            Thank you for using our service
+          </p>
+        </div>
         <div class="card-content">
           <div class="media is-vcentered">
             <div class="media-left">
@@ -59,7 +69,7 @@
               <div class="column">
                 <a
                   class="button is-link is-light is-centered is-small"
-                  v-bind:href="mapURL+store.StoreId"
+                  v-bind:href="mapURL + store.StoreId"
                 >
                   <span class="icon is-small">
                     <i class="fa fa-map-marker" aria-hidden="true"></i>
@@ -71,7 +81,13 @@
           </div>
           <div class="content is-medium">
             <div>
-              <p>Your turn will arrive at: {{ store.ExpectedTime }}<br /></p>
+              <p class="subtitle is-6">
+                Turn will arrive in slot:
+                <b>
+                  {{ store.ExpectedTimeBegin }} - {{ store.ExpectedTimeEnd }}
+                </b>
+                <br />
+              </p>
             </div>
             <div class="conditional-message">
               <!-- Conditional messages -->
@@ -121,6 +137,7 @@
 <script>
 import { database_call } from "../database.js";
 import { waiting_time } from "../waitingtime.js";
+import moment from "moment";
 
 export default {
   name: "Home",
@@ -131,7 +148,8 @@ export default {
       ownedStores: [],
       subscribedStores: [],
       activeIndexSubscribed: null,
-      mapURL: "https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=",
+      mapURL:
+        "https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=",
     };
   },
   methods: {
@@ -151,7 +169,9 @@ export default {
     // remove user from queue
     leaveQueue: function(storeId, key) {
       // disable leave queue button
-      var store = this.subscribedStores.find((store) => store.StoreId == storeId);
+      var store = this.subscribedStores.find(
+        (store) => store.StoreId == storeId
+      );
       store.IsLeaveQueueEnabled = false;
 
       var storeKey = this.subscribedStores[key].StoreKey;
@@ -216,6 +236,14 @@ export default {
                   that.uid
                 );
                 var expectedTime = waiting_time.convertTimeToETA(waitingTime);
+                var expectedTimeBegin = moment()
+                  .add(waitingTime, "minutes")
+                  .subtract(7.5, "minutes")
+                  .format("LT");
+                var expectedTimeEnd = moment()
+                  .add(waitingTime, "minutes")
+                  .add(7.5, "minutes")
+                  .format("LT");
 
                 // Retrieve user info from db
                 return database_call
@@ -232,6 +260,8 @@ export default {
                       StoreKey: storeKey,
                       TravelTime: 0,
                       IsLeaveQueueEnabled: true,
+                      ExpectedTimeBegin: expectedTimeBegin,
+                      ExpectedTimeEnd: expectedTimeEnd,
                     };
                     currentStore["State"] = that.getSeverityState(currentStore);
                     subscribedStores.push(currentStore);
