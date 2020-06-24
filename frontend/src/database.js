@@ -104,6 +104,13 @@ export const database_call = {
     });
   },
 
+  // Returning a promise after adding a person in queue
+  addToQueueAsync: function(storeId, userId) {
+    return new Promise((resolve) => {
+      this.addToQueue(storeId, userId, resolve);
+    });
+  },
+
   decQueueLength: function(storeId, callBack) {
     let dbRef = firebase.database().ref();
     var queueLengthRef = dbRef.child(this.getQueueLengthPath(storeId));
@@ -146,7 +153,21 @@ export const database_call = {
       });
     });
   },
-
+  // Returning a promise after removing a person from queue
+  removeFromQueueAsync: function(storeId, userId) {
+    var that = this;
+    return new Promise((resolve, reject) => {
+      this.getCurrentUserKey(storeId, userId, function(userKey) {
+        if (userKey) {
+          that.getCurrentStoreKey(storeId, userId, function(storeKey) {
+            that.removeFromQueue(storeId, userId, storeKey, userKey, resolve);
+          });
+        } else {
+          reject("User not in queue");
+        }
+      });
+    });
+  },
   // Returns the queuePosition, currentUserKey (of the user in UsersInQueue), and tokenNumber
   getUserInfo: function(storeId, userId, callBack) {
     let dbRef = firebase.database().ref();
