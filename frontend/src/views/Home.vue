@@ -89,6 +89,10 @@
                 <br />
               </p>
             </div>
+            <!-- Displaying leave time only is location is switched on and if it is in the future -->
+            <div v-if="locationOn && store.WaitingTime - store.TravelTime > 0">
+              <p class="subtitle is-6">Leave for the store by <b>{{ store.LeaveTime }}</b></p>
+            </div>
             <div class="conditional-message">
               <!-- Conditional messages -->
               <div
@@ -275,13 +279,25 @@ export default {
                           var travelTimeSeconds = parseInt(
                             travelTime.data.rows[0].elements[0].duration.value
                           );
-                          currentStore["TravelTime"] = Math.floor(travelTimeSeconds/60);
-                          console.log(currentStore);
-                          currentStore["State"] = that.getSeverityState(currentStore);
+                          currentStore["TravelTime"] = Math.floor(
+                            travelTimeSeconds / 60
+                          );
+
+                          // Leave Time is time at which user should leave for the store
+                          // Calculated by current time + waiting time - travel time
+                          currentStore["LeaveTime"] = moment()
+                            .add(waitingTime, "minutes")
+                            .subtract(travelTimeSeconds, "seconds")
+                            .format("LT");
+                          currentStore["State"] = that.getSeverityState(
+                            currentStore
+                          );
                           subscribedStores.push(currentStore);
                         });
                     } else {
-                      currentStore["State"] = that.getSeverityState(currentStore);
+                      currentStore["State"] = that.getSeverityState(
+                        currentStore
+                      );
                       subscribedStores.push(currentStore);
                     }
                   });
