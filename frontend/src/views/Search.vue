@@ -31,8 +31,8 @@
             :zoom="zoom"
             id="map"
             ref="map"
-            @drag="updateCenter()"
-            @zoom_changed="updateZoom($event)"
+            @drag="updateMarkerCenter()" 
+            @zoom_changed="updateRadius($event)"
           >
             <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
             <span :key="index"
@@ -217,7 +217,8 @@ export default {
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     var locationDisabledError = maps_api.getLocationDisabledError();
-
+    // Map radius corresponsding to zoom level 
+    var zoomToRadiusDict = {20: 100, 19: 250, 18: 500, 17:1000, 16: 1000, 15: 1000, 14: 1500, 13: 2000, 12: 5000, 11: 10000, 10: 25000, 9: 50000}
     return {
       center: center,
       markerCenter: center,
@@ -231,8 +232,9 @@ export default {
       status: null,
       locationOn: null,
       locationDisabledError: locationDisabledError,
-      zoom: 13,
-      radius: 1000,
+      zoom: 12,
+      radius: 5000,
+      zoomToRadiusDict: zoomToRadiusDict,
     };
   },
 
@@ -271,7 +273,8 @@ export default {
       };
     },
 
-    updateCenter() {
+    // Marker coordinates are set to the center of the map upon drag so that marker always remains in center
+    updateMarkerCenter() {
       this.markerCenter = {
         lat: this.$refs.map.$mapObject.getCenter().lat(),
         lng: this.$refs.map.$mapObject.getCenter().lng(),
@@ -280,12 +283,13 @@ export default {
       if (this.searchItem != null) this.dragged = true;
     },
 
-    updateZoom(event) {
-      var dict= {17:1000, 16: 1000, 15: 1000, 14: 2000, 13:5000, 12: 8000, 11: 16000, 10: 32000}
-      console.log(event);
-      this.radius = dict[event];
-      console.log(this.radius);
-      // console.log(this.$refs.map.$mapObject.getBounds());
+    updateRadius(event) {
+      if(event <= 8)
+        this.radius = 50000;
+      else if(event >= 21)
+        this.radius = 100;
+      else
+        this.radius = this.zoomToRadiusDict[event];
     },
 
     navigateToQueuePage(id) {
@@ -300,8 +304,9 @@ export default {
       return waiting_time.convertToHours(num);
     },
 
+    // Auto centers the map when new markers are added 
     autoCenter(){
-      this.center = this.markers[0].position;
+      this.$refs.map.$mapObject.setCenter(this.markers[0].position);
       var bounds = this.$refs.map.$mapObject.getBounds();
       for(var i = 0; i < this.markers.length; i++)
         bounds.extend(this.markers[i].position);
@@ -321,7 +326,6 @@ export default {
         // Does not make a request if query is empty
         return;
 
-      console.log("RADIUS " + this.radius);
       // Parameters in the required format for Text Search API
       let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
@@ -404,7 +408,6 @@ export default {
               return aTime - bTime;
             });
             this.markers = queues;
-            // this.autoCenter();
           });
         });
     },
