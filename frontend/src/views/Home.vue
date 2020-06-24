@@ -137,6 +137,7 @@
 <script>
 import { database_call } from "../database.js";
 import { waiting_time } from "../waitingtime.js";
+import { maps_api } from "../mapsApi";
 import moment from "moment";
 
 export default {
@@ -147,6 +148,8 @@ export default {
       uid: null,
       ownedStores: [],
       subscribedStores: [],
+      userLocation: null,
+      locationOn: null,
       activeIndexSubscribed: null,
       mapURL:
         "https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=",
@@ -263,9 +266,24 @@ export default {
                       ExpectedTimeBegin: expectedTimeBegin,
                       ExpectedTimeEnd: expectedTimeEnd,
                     };
-                    currentStore["State"] = that.getSeverityState(currentStore);
-                    subscribedStores.push(currentStore);
-                    // resolve();
+
+                    // Get the travel time to store if location is enabled
+                    if (that.locationOn) {
+                      return maps_api
+                        .calculateTravelTime(storeId, that.userLocation)
+                        .then((travelTime) => {
+                          var travelTimeSeconds = parseInt(
+                            travelTime.data.rows[0].elements[0].duration.value
+                          );
+                          currentStore["TravelTime"] = Math.floor(travelTimeSeconds/60);
+                          console.log(currentStore);
+                          currentStore["State"] = that.getSeverityState(currentStore);
+                          subscribedStores.push(currentStore);
+                        });
+                    } else {
+                      currentStore["State"] = that.getSeverityState(currentStore);
+                      subscribedStores.push(currentStore);
+                    }
                   });
               })
             );
@@ -301,6 +319,14 @@ export default {
   },
   created() {
     this.populateStores();
+  },
+  mounted() {
+    maps_api.getPosition().then((location) => {
+      if (location) {
+        this.userLocation = location;
+        this.locationOn = true;
+      } else this.locationOn = false;
+    });
   },
 };
 </script>
