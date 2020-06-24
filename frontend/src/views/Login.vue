@@ -1,7 +1,8 @@
 <template>
   <div class="login">
-    <div class="outer">
-      <div class="middle">
+    <div>
+      <div>
+        <img src="../assets/logo-name.png" class="logo-name" />
         <h1 class="title is-3">Sign In</h1>
           <span v-html="loginContent"></span>
         <div class="inner box">

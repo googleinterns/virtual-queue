@@ -1,6 +1,7 @@
 <template>
-  <div class="outer">
-    <div class="middle">
+  <div>
+    <div>
+      <img src="../assets/logo-name.png" class="logo-name" />
       <h1 class="title is-3">Sign Up</h1>
       <span v-html="signupContent"></span>
       <div class="inner box">
