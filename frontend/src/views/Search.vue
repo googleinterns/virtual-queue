@@ -231,7 +231,8 @@ export default {
       status: null,
       locationOn: null,
       locationDisabledError: locationDisabledError,
-      zoom: 14,
+      zoom: 13,
+      radius: 1000,
     };
   },
 
@@ -280,7 +281,9 @@ export default {
     },
 
     updateZoom(event) {
-      this.radius = Math.max(1000 * (18 - event),1000);
+      var dict= {17:1000, 16: 1000, 15: 1000, 14: 2000, 13:5000, 12: 8000, 11: 16000, 10: 32000}
+      console.log(event);
+      this.radius = dict[event];
       console.log(this.radius);
       // console.log(this.$refs.map.$mapObject.getBounds());
     },
@@ -297,13 +300,14 @@ export default {
       return waiting_time.convertToHours(num);
     },
 
-    // autoCenter(){
-    //   var bounds = this.$refs.map.$mapObject.getBounds();
-    //   for(var i = 0; i < this.markers.length; i++)
-    //     bounds.extend(this.markers[i].position);
+    autoCenter(){
+      this.center = this.markers[0].position;
+      var bounds = this.$refs.map.$mapObject.getBounds();
+      for(var i = 0; i < this.markers.length; i++)
+        bounds.extend(this.markers[i].position);
       
-    //   this.$refs.map.$mapObject.fitBounds(bounds);
-    // },
+      this.$refs.map.$mapObject.fitBounds(bounds);
+    },
 
     search: function() {
       let center = this.markerCenter;
@@ -317,6 +321,7 @@ export default {
         // Does not make a request if query is empty
         return;
 
+      console.log("RADIUS " + this.radius);
       // Parameters in the required format for Text Search API
       let placesParams = {
         location: this.markerCenter.lat + "," + this.markerCenter.lng,
@@ -329,6 +334,7 @@ export default {
       axios
         .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
         .then((response) => {
+          console.log(response);
           // Iterate over each store response from Places API
           for (var i = 0; i < response.data.results.length; i++) {
             var store = response.data.results[i];
