@@ -27,9 +27,9 @@ export const maps_api = {
   },
 
   // Returns the current location (latitude & longitude) of the user
-  getPosition: function(options) {
+  getPosition: function() {
     return new Promise(function(resolve, reject) {
-      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      navigator.geolocation.getCurrentPosition(resolve, reject);
     })
       .then((position) => {
         let userLocation = {
