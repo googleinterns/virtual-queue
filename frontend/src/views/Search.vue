@@ -2,6 +2,7 @@
   <div class="search">
     <div class="container has-text-centered">
       <h1 class="title is-3">Store finder</h1>
+      <!-- Displays an error if location is disabled -->
       <h1 class="subtitle is-6 error-sign width-80" v-if="locationOn == false">
         {{ locationDisabledError }}
       </h1>
@@ -34,7 +35,6 @@
             @drag="updateMarkerCenter()"
             @zoom_changed="updateRadius($event)"
           >
-            <!-- getStoreMarker fetches the blue/red markers for the active/inactive store markers. getUserMarker fetches the orange marker based on user location -->
             <span :key="index" v-for="(m, index) in markers">
               <gmap-custom-marker :marker="m.position">
                 <div class="marker">
@@ -57,10 +57,8 @@
                 </div>
               </gmap-custom-marker>
             </span>
-            <gmap-marker
-              :position="markerCenter"
-              :icon="getUserMarker()"
-            ></gmap-marker>
+            <gmap-marker :position="markerCenter"></gmap-marker>
+            <!-- Info windows corresponding to each location that get activated on hover of marker -->
             <gmap-info-window
               v-for="(m, index) in markers"
               :position="m.position"
@@ -86,6 +84,7 @@
         No shops found near you!
         <i class="fa fa-frown" aria-hidden="true"></i>
       </div>
+      <!-- Displays a search button if the map has been dragged (or central marker position changed) since last query -->
       <button
         class="button is-info is-rounded is-outlined"
         @click="search"
@@ -175,6 +174,7 @@
   background-color: #3e628c;
 }
 
+/* Change marker colour on hover and size/border transitions */
 .marker-top:hover {
   background: #e75480;
   min-height: 25px;
@@ -243,6 +243,7 @@ export default {
       status: null,
       locationOn: null,
       locationDisabledError: locationDisabledError,
+      // Default zoom level set to 12
       zoom: 12,
       radius: 5000,
       zoomToRadiusDict: zoomToRadiusDict,
@@ -269,21 +270,6 @@ export default {
       this.activeIndex = undefined;
     },
 
-    getStoreMarker(index) {
-      if (this.activeIndex == index)
-        return {
-          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-          scaledSize: { width: 40, height: 40 },
-        };
-    },
-
-    getUserMarker() {
-      return {
-        url: "http://maps.google.com/mapfiles/ms/icons/orange-dot.png",
-        scaledSize: { width: 40, height: 40 },
-      };
-    },
-
     // Marker coordinates are set to the center of the map upon drag so that marker always remains in center
     updateMarkerCenter() {
       this.markerCenter = {
@@ -303,10 +289,6 @@ export default {
 
     navigateToQueuePage(id) {
       this.$router.replace("queue/" + id);
-    },
-
-    setPlace(place) {
-      this.currentPlace = place;
     },
 
     convertToHours(num) {
