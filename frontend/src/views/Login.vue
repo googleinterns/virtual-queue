@@ -1,53 +1,50 @@
 <template>
   <div class="login">
-    <div class="outer">
-      <div class="middle">
-        <h1 class="title is-3">Sign In</h1>
-          <span v-html="loginContent"></span>
-        <div class="inner box">
-          <div class="field">
-            <p class="control has-icons-left">
-              <input
-                class="input"
-                v-model="email"
-                type="email"
-                placeholder="Email"
-              />
-              <span class="icon is-small is-left">
-                <i class="fas fa-envelope"></i>
-              </span>
-            </p>
-          </div>
-          <div class="field">
-            <p class="control has-icons-left">
-              <input
-                class="input"
-                v-model="password"
-                type="password"
-                placeholder="Password"
-              />
-              <span class="icon is-small is-left">
-                <i class="fas fa-lock"></i>
-              </span>
-            </p>
-          </div>
-          <div class="field">
-            <p class="control">
-              <button class="button is-info full" @click="login">
-                Login
-              </button>
-            </p>
-          </div>
-        </div>
-        <p>
-          or sign in with Google
-          <br />
-          <button @click="googleSignIn" class="google-button">
-            <img alt="Google Logo" src="../assets/google-icon.png" />
+    <img src="../assets/logo.png" class="logo" />
+    <h1 class="title is-3">Sign In</h1>
+    <span v-html="loginContent"></span>
+    <div class="inner box">
+      <div class="field">
+        <p class="control has-icons-left">
+          <input
+            class="input"
+            v-model="email"
+            type="email"
+            placeholder="Email"
+          />
+          <span class="icon is-small is-left">
+            <i class="fas fa-envelope"></i>
+          </span>
+        </p>
+      </div>
+      <div class="field">
+        <p class="control has-icons-left">
+          <input
+            class="input"
+            v-model="password"
+            type="password"
+            placeholder="Password"
+          />
+          <span class="icon is-small is-left">
+            <i class="fas fa-lock"></i>
+          </span>
+        </p>
+      </div>
+      <div class="field">
+        <p class="control">
+          <button class="button is-info full" @click="login">
+            Login
           </button>
         </p>
       </div>
     </div>
+    <p>
+      or sign in with Google
+      <br />
+      <button @click="googleSignIn" class="google-button">
+        <img alt="Google Logo" src="../assets/google-icon.png" />
+      </button>
+    </p>
   </div>
 </template>
 
@@ -73,7 +70,8 @@ export default {
             that.$router.push({ name: "Home" });
           },
           (err) => {
-            this.loginContent = '<div class="error-sign width-80">'+err.message+'</div>'
+            this.loginContent =
+              '<div class="error-sign width-80">' + err.message + "</div>";
           }
         );
     },
@@ -87,7 +85,8 @@ export default {
           that.$router.push({ name: "Home" });
         })
         .catch((err) => {
-          this.loginContent = '<div class="error-sign width-80">'+err.message+'</div>'
+          this.loginContent =
+            '<div class="error-sign width-80">' + err.message + "</div>";
         });
     },
   },

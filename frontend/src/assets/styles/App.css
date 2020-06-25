@@ -16,11 +16,16 @@
   margin-left: auto;
   margin-right: auto;
   width: 85%;
-  max-width: 430px;
+  max-width: 400px;
 }
 
 .full {
   width: 100%;
+}
+
+.logo{
+  max-width: 40%;
+  width: 130px;
 }
 
 .page-container {
@@ -48,7 +53,7 @@
 }
 
 .navbar {
-  margin-bottom: 5%;
+  margin-bottom: 30px;
 }
 
 .error-sign {
