@@ -2,6 +2,9 @@
   <div class="container has-text-centered">
     <div class="task-container is-mobile is-centered is-one-thirds">
       <h1 class="title is-3">Your Queues</h1>
+      <h1 class="subtitle is-6 error-sign width-80" v-if="locationOn == false">
+        {{ locationDisabledError }}
+      </h1>
       <div
         v-for="(store, index) of subscribedStores"
         :key="store.StoreId"
@@ -89,6 +92,12 @@
                 <br />
               </p>
             </div>
+            <!-- Displaying leave time only is location is switched on, if it is in the future and if it is before the wait time window's beginning-->
+            <div v-if="locationOn && store.WaitingTime - store.TravelTime > 0 && store.LeaveTime<store.ExpectedTimeBegin">
+              <p class="subtitle is-6">
+                Leave for the store by <b>{{ store.LeaveTime }}</b>
+              </p>
+            </div>
             <div class="conditional-message">
               <!-- Conditional messages -->
               <div
@@ -137,6 +146,7 @@
 <script>
 import { database_call } from "../database.js";
 import { waiting_time } from "../waitingtime.js";
+import { maps_api } from "../mapsApi";
 import moment from "moment";
 
 export default {
@@ -147,7 +157,10 @@ export default {
       uid: null,
       ownedStores: [],
       subscribedStores: [],
+      userLocation: null,
+      locationOn: null,
       activeIndexSubscribed: null,
+      locationDisabledError: maps_api.getLocationDisabledError(),
       mapURL:
         "https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=",
     };
@@ -263,9 +276,36 @@ export default {
                       ExpectedTimeBegin: expectedTimeBegin,
                       ExpectedTimeEnd: expectedTimeEnd,
                     };
-                    currentStore["State"] = that.getSeverityState(currentStore);
-                    subscribedStores.push(currentStore);
-                    // resolve();
+
+                    // Get the travel time to store if location is enabled
+                    if (that.locationOn) {
+                      return maps_api
+                        .calculateTravelTime(storeId, that.userLocation)
+                        .then((travelTime) => {
+                          var travelTimeSeconds = parseInt(
+                            travelTime.data.rows[0].elements[0].duration.value
+                          );
+                          currentStore["TravelTime"] = Math.floor(
+                            travelTimeSeconds / 60
+                          );
+
+                          // Leave Time is time at which user should leave for the store
+                          // Calculated by current time + waiting time - travel time
+                          currentStore["LeaveTime"] = moment()
+                            .add(waitingTime, "minutes")
+                            .subtract(travelTimeSeconds, "seconds")
+                            .format("LT");
+                          currentStore["State"] = that.getSeverityState(
+                            currentStore
+                          );
+                          subscribedStores.push(currentStore);
+                        });
+                    } else {
+                      currentStore["State"] = that.getSeverityState(
+                        currentStore
+                      );
+                      subscribedStores.push(currentStore);
+                    }
                   });
               })
             );
@@ -285,7 +325,10 @@ export default {
     getSeverityState: function(store) {
       var waitingTime = parseInt(store.WaitingTime);
       var travelTime = parseInt(store.TravelTime);
-      var severity = waitingTime - travelTime;
+
+      // severity is beginning of expected time window - time to travel
+      var waitWindowStart = waitingTime - 7.5;
+      var severity = waitWindowStart - travelTime;
 
       // Message: You should be at the store now! (waitTime < 10 min)
       if (store.WaitingTime < 10) return 0;
@@ -301,6 +344,14 @@ export default {
   },
   created() {
     this.populateStores();
+  },
+  mounted() {
+    maps_api.getPosition().then((location) => {
+      if (location) {
+        this.userLocation = location;
+        this.locationOn = true;
+      } else this.locationOn = false;
+    });
   },
 };
 </script>
