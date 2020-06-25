@@ -1,7 +1,7 @@
 <template>
   <div class="Queue">
     <h1 class="title is-3">{{ storeName }}</h1>
-    <h3 class="columns is-centered is-mobile" v-if="address != null">
+    <h3 class="columns is-centered is-mobile is-gapless" v-if="address != null">
       <h3 class="column is-8">
         {{ address }}
         <br />
@@ -15,7 +15,7 @@
           <i class="fa fa-map-marker fa-2x" aria-hidden="true"></i>
           <p v-if="travelTime">{{ travelTime }} away</p>
           <p class="error-sign" v-if="locationOn == false">
-            {{locationDisabledError}}
+            {{ locationDisabledError }}
           </p>
         </a>
       </h3>
@@ -31,11 +31,14 @@
         <!--If person has not enrolled to the queue-->
         <div v-if="!isUserEnrolled">
           <h2>
-            You would have to wait till: {{ expectedTimeUnenrolled }} ({{
-              waitingTimeInHoursUnenrolled
-            }}
-            more)
+            You would have to wait till:
+            <span class="bold">{{ expectedTimeUnenrolled }}</span
+            ><br />({{ waitingTimeInHoursUnenrolled }}
+            from now)
           </h2>
+          <div v-if="waitingTime == 0" class="is-size-6 has-text-info">
+            <p>There's no-one in the queue :)<br /></p>
+          </div>
         </div>
         <!--If person has enrolled to the queue-->
         <div class="tooltip" v-else>
@@ -52,14 +55,22 @@
               v-clipboard:success="onShareCopy"
               v-clipboard:error="onCopyError"
             >
-              <span class="tooltiptext" id="myTooltip">Copy to clipboard</span>
+              <span class="tooltiptext" id="myTooltip">Click to share</span>
               <font-awesome-icon icon="share-alt" />
             </button>
           </span>
           <h2>
-            Time to reach store: {{ expectedTime }} ({{ waitingTimeInHours }}
+            Time to reach store: <span class="bold">{{ expectedTime }} </span
+            ><br />({{ waitingTimeInHours }}
             remaining)
           </h2>
+          <div
+            v-if="waitingTimeEnrolled == 0"
+            class="is-size-6 has-text-danger"
+          >
+            <p>You should be at the store now!<br /></p>
+          </div>
+          <br />
         </div>
         <br />
         <button
@@ -81,11 +92,14 @@
       <!--if person is not logged in-->
       <div v-else-if="!uid">
         <h2>
-          You would have to wait till: {{ expectedTimeUnenrolled }} ({{
-            waitingTimeInHoursUnenrolled
-          }}
-          more)
+          You would have to wait till:
+          <span class="bold">{{ expectedTimeUnenrolled }}</span
+          ><br />({{ waitingTimeInHoursUnenrolled }}
+          from now)
         </h2>
+        <div v-if="waitingTime == 0" class="is-size-6 has-text-info">
+          <p>There's no-one in the queue :)<br /></p>
+        </div>
         <br />
         <button class="button is-info is-light">
           <router-link class="has-text-black" :to="{ name: 'Login' }"
@@ -95,15 +109,15 @@
       </div>
       <br />
       <br />
-      <div class="columns is-centered">
+      <div class="columns is-centered is-mobile is-gapless">
         <highcharts
-          class="column is-four-fifths"
+          class="column is-11"
           :options="chartOptions"
           ref="lineCharts"
           :constructor-type="chart"
         ></highcharts>
       </div>
-      <h1 class="has-text-dark is-size-7">
+      <h1 class="has-text-dark is-size-7 width-80">
         Disclaimer: From this graph you can predict percentage of queue resolved
         in token ranges of 20.
       </h1>
@@ -112,8 +126,8 @@
     </div>
     <!--if Queue is not enabled-->
     <div class="is-size-5 is-danger" v-else-if="isEnabled != null">
-      <h3>Currently closed !!</h3>
-      <h3>Queue Disabled !!</h3>
+      <h3>Currently closed !</h3>
+      <h3>Queue Disabled !</h3>
     </div>
     <br /><br />
   </div>
@@ -132,7 +146,7 @@ export default {
   },
   data() {
     var locationDisabledError = maps_api.getLocationDisabledError();
-    
+
     return {
       textToShare: null,
       storeId: this.$route.params.StoreId,
@@ -152,6 +166,7 @@ export default {
       locationOn: null,
       locationDisabledError: locationDisabledError,
       waitingTime: 0,
+      waitingTimeEnrolled: 0,
       waitingTimeInHours: 0,
       waitingTimeInHoursUnenrolled: "0 minutes",
       expectedTime: 0,
@@ -185,7 +200,7 @@ export default {
           },
           plotLines: [
             {
-              color: "#A9A9A9",
+              color: "#D3D3D3",
               dashStyle: "solid",
               value: null,
               width: 10,
@@ -229,7 +244,7 @@ export default {
     // When copy through share button is successful
     onShareCopy: function() {
       var tooltip = document.getElementById("myTooltip");
-      tooltip.innerHTML = "Copied!!!";
+      tooltip.innerHTML = "Share Now!";
     },
     // When copy through share button is unsuccessful
     onCopyError: function() {
@@ -239,7 +254,7 @@ export default {
     // This function called when we hover over share button
     outFunc: function() {
       var tooltip = document.getElementById("myTooltip");
-      tooltip.innerHTML = "Copy to clipboard";
+      tooltip.innerHTML = "Click to share";
     },
     // The content copied when share button is clicked
     shareContent: function() {
@@ -283,7 +298,7 @@ export default {
                 that.storeId,
                 that.queuePosition,
                 function(waitingTime) {
-                  that.waitingTime = waitingTime;
+                  that.waitingTimeEnrolled = waitingTime;
                   that.waitingTimeInHours = waiting_time.convertToHours(
                     waitingTime
                   );
@@ -311,6 +326,7 @@ export default {
           that.expectedTimeUnenrolled = waiting_time.convertTimeToETA(
             waitingTime
           );
+          that.waitingTime = waitingTime;
         });
       }
     },
@@ -334,7 +350,7 @@ export default {
             that.storeId,
             that.queuePosition,
             function(waitingTime) {
-              that.waitingTime = waitingTime;
+              that.waitingTimeEnrolled = waitingTime;
               that.waitingTimeInHours = waiting_time.convertToHours(
                 waitingTime
               );
@@ -371,6 +387,7 @@ export default {
         that.expectedTimeUnenrolled = waiting_time.convertTimeToETA(
           waitingTime
         );
+        that.waitingTime = waitingTime;
       });
     },
     queueDec: function(snap) {
@@ -384,6 +401,7 @@ export default {
         that.expectedTimeUnenrolled = waiting_time.convertTimeToETA(
           waitingTime
         );
+        that.waitingTime = waitingTime;
       });
 
       // Decrementing Queue Position
@@ -394,7 +412,7 @@ export default {
             that.storeId,
             that.queuePosition,
             function(waitingTime) {
-              that.waitingTime = waitingTime;
+              that.waitingTimeEnrolled = waitingTime;
               that.waitingTimeInHours = waiting_time.convertToHours(
                 waitingTime
               );
@@ -520,6 +538,9 @@ export default {
 </script>
 
 <style scoped>
+.bold {
+  font-weight: bold;
+}
 #shareIcon {
   top: -10px;
   min-height: 2em;
