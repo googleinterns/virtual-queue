@@ -51,15 +51,23 @@
   margin-bottom: 5%;
 }
 
-.error-sign{
+.error-sign {
   color: red !important;
 }
 
-.success-sign{
+.success-sign {
   color: green;
 }
 
-.width-80{
+.width-80 {
   width: 80%;
   margin: 0 auto;
+}
+
+.color-black {
+  color: black;
+}
+
+.border-2 {
+  border-width: 2px !important;
 }

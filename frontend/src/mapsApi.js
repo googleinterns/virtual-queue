@@ -3,8 +3,23 @@ import axios from "axios";
 import VueAxios from "vue-axios";
 Vue.use(VueAxios, axios);
 
-export const maps_api = {
+// Map radius corresponsding to zoom level
+export const zoomToRadiusDict = {
+  20: 100,
+  19: 250,
+  18: 500,
+  17: 1000,
+  16: 1000,
+  15: 1000,
+  14: 1500,
+  13: 2000,
+  12: 5000,
+  11: 10000,
+  10: 25000,
+  9: 50000,
+};
 
+export const maps_api = {
   // Queries Maps Distance Matrix API for the time taken to travel from the user's location to the store
   calculateTravelTime: function(placeId, center) {
     
@@ -27,9 +42,9 @@ export const maps_api = {
   },
 
   // Returns the current location (latitude & longitude) of the user
-  getPosition: function(options) {
+  getPosition: function() {
     return new Promise(function(resolve, reject) {
-      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      navigator.geolocation.getCurrentPosition(resolve, reject);
     })
       .then((position) => {
         let userLocation = {
