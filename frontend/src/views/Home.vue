@@ -2,6 +2,9 @@
   <div class="container has-text-centered">
     <div class="task-container is-mobile is-centered is-one-thirds">
       <h1 class="title is-3">Your Queues</h1>
+      <h1 class="subtitle is-6 error-sign width-80" v-if="locationOn == false">
+        {{ locationDisabledError }}
+      </h1>
       <div
         v-for="(store, index) of subscribedStores"
         :key="store.StoreId"
@@ -89,9 +92,11 @@
                 <br />
               </p>
             </div>
-            <!-- Displaying leave time only is location is switched on and if it is in the future -->
-            <div v-if="locationOn && store.WaitingTime - store.TravelTime > 0">
-              <p class="subtitle is-6">Leave for the store by <b>{{ store.LeaveTime }}</b></p>
+            <!-- Displaying leave time only is location is switched on, if it is in the future and if it is before the wait time window's beginning-->
+            <div v-if="locationOn && store.WaitingTime - store.TravelTime > 0 && store.LeaveTime<store.ExpectedTimeBegin">
+              <p class="subtitle is-6">
+                Leave for the store by <b>{{ store.LeaveTime }}</b>
+              </p>
             </div>
             <div class="conditional-message">
               <!-- Conditional messages -->
@@ -155,6 +160,7 @@ export default {
       userLocation: null,
       locationOn: null,
       activeIndexSubscribed: null,
+      locationDisabledError: maps_api.getLocationDisabledError(),
       mapURL:
         "https://www.google.com/maps/search/?api=1&query=<address>&query_place_id=",
     };
@@ -292,6 +298,9 @@ export default {
                           currentStore["State"] = that.getSeverityState(
                             currentStore
                           );
+                          console.log("LeaveTime");
+                          console.log(currentStore["LeaveTime"]);
+                          console.log(currentStore["ExpectedTimeBegin"]);
                           subscribedStores.push(currentStore);
                         });
                     } else {
@@ -319,7 +328,11 @@ export default {
     getSeverityState: function(store) {
       var waitingTime = parseInt(store.WaitingTime);
       var travelTime = parseInt(store.TravelTime);
-      var severity = waitingTime - travelTime;
+      console.log(travelTime);
+
+      // severity is beginning of expected time window - time to travel
+      var waitWindowStart = waitingTime - 7.5;
+      var severity = waitWindowStart - travelTime;
 
       // Message: You should be at the store now! (waitTime < 10 min)
       if (store.WaitingTime < 10) return 0;
