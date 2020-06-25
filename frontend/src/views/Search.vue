@@ -10,15 +10,14 @@
         <div class="field is-grouped">
           <form class="control has-icons-right" @submit="search">
             <input
-              class="input is-rounded"
+              class="input is-rounded border-2"
               type="text"
               v-model="searchItem"
-              style="border-width:2px;"
               Placeholder="Grocery stores"
             />
             <div v-on:click="search">
               <span class="icon is-medium is-right">
-                <i class="fa fa-search" style="color: black"></i>
+                <i class="fa fa-search color-black"></i>
               </span>
             </div>
           </form>
@@ -102,7 +101,6 @@
           @mouseover="setActive(index)"
           @mouseout="setInactive"
           class="card results"
-          style="margin-bottom: 5px"
         >
           <div class="card-content">
             <div class="media">
@@ -111,7 +109,7 @@
                   <img
                     :src="`${mark.img}`"
                     alt="Placeholder image"
-                    style="width:70px; height: 70px;"
+                    class="shop-image"
                   />
                 </figure>
               </div>
@@ -142,6 +140,7 @@
 .results {
   max-width: 450px;
   margin: 0 auto;
+  margin-bottom: 5px;
 }
 .active {
   border-radius: 16px;
@@ -154,13 +153,14 @@
   margin: 0 auto;
 }
 
+.shop-image {
+  width: 70px;
+  height: 70px;
+}
+
 .borderless {
   border-color: white;
   padding: 0px;
-}
-
-.fixed-width-80 {
-  width: 80%;
 }
 
 .marker-top {
@@ -184,6 +184,7 @@
   transition: transform 330ms ease-in-out;
 }
 
+/* Styles the marker with an arrow at the bottom */
 .marker-bottom {
   border: 5px solid transparent;
   border-top-color: #3e628c;
