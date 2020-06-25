@@ -304,6 +304,9 @@ export default {
       // Does not make a request if query is empty
       if (this.searchItem == null) return;
 
+      let center = this.markerCenter;
+      var nearWords = ["in", "near", "nearby"];
+      var searchWithNear = false;
       // Dragged variable set to false as new query is made from the location
       this.dragged = false;
       // Status set to loading (1) when the query is made
@@ -311,6 +314,9 @@ export default {
       // Previous markers are cleared for the new query
       this.markers = [];
 
+      for (var index = 0; index < nearWords.length; index++) {
+        if (this.searchItem.includes(nearWords[index])) searchWithNear = true;
+      }
       // Obtains list of stores & their details based on user query
       search_api
         .getStoresArray(this.markerCenter, this.radius, this.searchItem)
@@ -322,6 +328,7 @@ export default {
           } else {
             // If some stores are returned, status is reset to non-loading (status code 0)
             this.status = 0;
+            if (searchWithNear) this.autoCenter;
           }
         });
     },
