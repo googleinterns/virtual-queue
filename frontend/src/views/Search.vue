@@ -205,6 +205,7 @@ import VueAxios from "vue-axios";
 import GmapCustomMarker from "vue2-gmap-custom-marker";
 import { waiting_time } from "../waitingtime";
 import { maps_api } from "../mapsApi";
+import { zoomToRadiusDict } from "../mapsApi";
 Vue.use(VueAxios, axios);
 
 export default {
@@ -215,21 +216,6 @@ export default {
   data() {
     var center = { lat: 13.0166, lng: 77.6804 }; // Default center to Google Bangalore office :)
     var locationDisabledError = maps_api.getLocationDisabledError();
-    // Map radius corresponsding to zoom level
-    var zoomToRadiusDict = {
-      20: 100,
-      19: 250,
-      18: 500,
-      17: 1000,
-      16: 1000,
-      15: 1000,
-      14: 1500,
-      13: 2000,
-      12: 5000,
-      11: 10000,
-      10: 25000,
-      9: 50000,
-    };
     return {
       center: center,
       markerCenter: center,
@@ -246,7 +232,6 @@ export default {
       // Default zoom level set to 12
       zoom: 12,
       radius: 5000,
-      zoomToRadiusDict: zoomToRadiusDict,
     };
   },
 
@@ -261,36 +246,44 @@ export default {
   },
 
   methods: {
+    // Sets active the location index and opens up its info window
     setActive(index) {
       this.activeIndex = index;
       this.windowOpen = true;
     },
 
+    // Inactivates the location index so that no location is highlighted
     setInactive() {
       this.activeIndex = undefined;
     },
 
     // Marker coordinates are set to the center of the map upon drag so that marker always remains in center
     updateMarkerCenter() {
+      // Obtains current center using the map reference
       this.markerCenter = {
         lat: this.$refs.map.$mapObject.getCenter().lat(),
         lng: this.$refs.map.$mapObject.getCenter().lng(),
       };
 
+      // Displays the search from here button only if the search box is not empty
       if (this.searchItem != null) this.dragged = true;
     },
 
     // Updates the radius according to zoom level
     updateRadius(event) {
+      // If zoom level is less than or equal to 8, search radius is 50km (maximum value allowed by Maps API)
       if (event <= 8) this.radius = 50000;
+      // If the zoom level is greater than or equal to 21, radius is just 100m as the granularity of search is very fine
       else if (event >= 21) this.radius = 100;
-      else this.radius = this.zoomToRadiusDict[event];
+      // Otherwise get corresponding radius from the zoomToRadius dictionary
+      else this.radius = zoomToRadiusDict[event];
     },
 
     navigateToQueuePage(id) {
       this.$router.replace("queue/" + id);
     },
 
+    // Calls function to convert numerical waiting time to hours format
     convertToHours(num) {
       return waiting_time.convertToHours(num);
     },
@@ -309,8 +302,11 @@ export default {
       let center = this.markerCenter;
       var queues = [];
       let promises = [];
+      // Dragged variable set to false as new query is made from the location
       this.dragged = false;
+      // Status set to loading (1) when the query is made
       this.status = 1;
+      // Previous markers are cleared for the new query
       this.markers = [];
 
       if (this.searchItem == null)
@@ -337,6 +333,7 @@ export default {
             // check if a store with obtained location ID exists in firebase DB
             if (locref) {
               let localStore = store;
+              // Push each promise to the array
               promises.push(
                 dbRef
                   .child("Store")
@@ -344,6 +341,7 @@ export default {
                   .child("IsEnabled")
                   .once("value")
                   .then(function(snap) {
+                    // Checks if the queue is enabled at the store (value of IsEnabled must be true)
                     if (snap.val()) {
                       // Returns travel time between user and store location
                       return maps_api
@@ -367,6 +365,7 @@ export default {
                               queues.push({
                                 location: localStore.name,
                                 position: localStore.geometry.location,
+                                // Stores the unique place ID of the shop
                                 id: localStore.place_id,
                                 // Stores the time duration field of the API response - divide by 60 as the value is in seconds
                                 travelTime: Math.floor(
@@ -386,7 +385,9 @@ export default {
 
           // Wait for all promises to return and then sort the queue
           Promise.all(promises).then(() => {
+            // Sets the status to no shops found (status -1)
             if (queues.length == 0) this.status = -1;
+            // Else, resets the status to non-loading (status 0)
             else this.status = 0;
 
             queues.sort(function(a, b) {
