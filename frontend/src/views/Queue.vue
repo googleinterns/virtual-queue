@@ -1,7 +1,7 @@
 <template>
-  <div class="Queue scroll">
+  <div class="Queue">
     <h1 class="title is-3">{{ storeName }}</h1>
-    <h3 class="columns is-centered is-mobile" v-if="address != null">
+    <h3 class="columns is-centered is-mobile is-gapless" v-if="address != null">
       <h3 class="column is-8">
         {{ address }}
         <br />
@@ -64,8 +64,11 @@
             ><br />({{ waitingTimeInHours }}
             remaining)
           </h2>
-          <div v-if="waitingTime == 0" class="is-size-6 has-text-danger">
-            <p>You should be at the store now!!!<br /></p>
+          <div
+            v-if="waitingTimeEnrolled == 0"
+            class="is-size-6 has-text-danger"
+          >
+            <p>You should be at the store now!<br /></p>
           </div>
           <br />
         </div>
@@ -106,9 +109,9 @@
       </div>
       <br />
       <br />
-      <div class="columns is-centered">
+      <div class="columns is-centered is-mobile is-gapless">
         <highcharts
-          class="column is-four-fifths"
+          class="column is-11"
           :options="chartOptions"
           ref="lineCharts"
           :constructor-type="chart"
@@ -123,8 +126,8 @@
     </div>
     <!--if Queue is not enabled-->
     <div class="is-size-5 is-danger" v-else-if="isEnabled != null">
-      <h3>Currently closed !!</h3>
-      <h3>Queue Disabled !!</h3>
+      <h3>Currently closed !</h3>
+      <h3>Queue Disabled !</h3>
     </div>
     <br /><br />
   </div>
@@ -163,6 +166,7 @@ export default {
       locationOn: null,
       locationDisabledError: locationDisabledError,
       waitingTime: 0,
+      waitingTimeEnrolled: 0,
       waitingTimeInHours: 0,
       waitingTimeInHoursUnenrolled: "0 minutes",
       expectedTime: 0,
@@ -240,7 +244,7 @@ export default {
     // When copy through share button is successful
     onShareCopy: function() {
       var tooltip = document.getElementById("myTooltip");
-      tooltip.innerHTML = "Share Now!!";
+      tooltip.innerHTML = "Share Now!";
     },
     // When copy through share button is unsuccessful
     onCopyError: function() {
@@ -294,7 +298,7 @@ export default {
                 that.storeId,
                 that.queuePosition,
                 function(waitingTime) {
-                  that.waitingTime = waitingTime;
+                  that.waitingTimeEnrolled = waitingTime;
                   that.waitingTimeInHours = waiting_time.convertToHours(
                     waitingTime
                   );
@@ -346,7 +350,7 @@ export default {
             that.storeId,
             that.queuePosition,
             function(waitingTime) {
-              that.waitingTime = waitingTime;
+              that.waitingTimeEnrolled = waitingTime;
               that.waitingTimeInHours = waiting_time.convertToHours(
                 waitingTime
               );
@@ -408,7 +412,7 @@ export default {
             that.storeId,
             that.queuePosition,
             function(waitingTime) {
-              that.waitingTime = waitingTime;
+              that.waitingTimeEnrolled = waitingTime;
               that.waitingTimeInHours = waiting_time.convertToHours(
                 waitingTime
               );
@@ -534,9 +538,6 @@ export default {
 </script>
 
 <style scoped>
-.scroll {
-  overflow-y: scroll;
-}
 .bold {
   font-weight: bold;
 }
