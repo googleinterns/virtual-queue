@@ -60,9 +60,9 @@
             </button>
           </span>
           <h2>
-            Time to reach store: <span class="bold">{{ expectedTime }} </span
-            ><br />({{ waitingTimeInHours }}
-            remaining)
+            Turn will arrive in slot:
+            <b> {{ expectedTimeBegin }} - {{ expectedTimeEnd }} </b>
+            <br />
           </h2>
           <div
             v-if="waitingTimeEnrolled == 0"
@@ -138,6 +138,7 @@ import { database_call } from "../database.js";
 import { waiting_time } from "../waitingtime.js";
 import { maps_api } from "../mapsApi";
 import { Chart } from "highcharts-vue";
+import moment from "moment";
 
 export default {
   name: "Queue",
@@ -170,6 +171,8 @@ export default {
       waitingTimeInHours: 0,
       waitingTimeInHoursUnenrolled: "0 minutes",
       expectedTime: 0,
+      expectedTimeBegin: 0,
+      expectedTimeEnd: 0,
       expectedTimeUnenrolled: null,
       chartOptions: {
         chart: { type: "areaspline" },
@@ -348,6 +351,14 @@ export default {
                 waitingTime
               );
               that.expectedTime = waiting_time.convertTimeToETA(waitingTime);
+              that.expectedTimeBegin = moment()
+                .add(waitingTime, "minutes")
+                .subtract(7.5, "minutes")
+                .format("LT");
+              that.expectedTimeEnd = moment()
+                .add(waitingTime, "minutes")
+                .add(7.5, "minutes")
+                .format("LT");
             }
           );
         }
@@ -410,6 +421,14 @@ export default {
                 waitingTime
               );
               that.expectedTime = waiting_time.convertTimeToETA(waitingTime);
+              that.expectedTimeBegin = moment()
+                .add(waitingTime, "minutes")
+                .subtract(7.5, "minutes")
+                .format("LT");
+              that.expectedTimeEnd = moment()
+                .add(waitingTime, "minutes")
+                .add(7.5, "minutes")
+                .format("LT");
             }
           );
         }

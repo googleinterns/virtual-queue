@@ -298,9 +298,6 @@ export default {
                           currentStore["State"] = that.getSeverityState(
                             currentStore
                           );
-                          console.log("LeaveTime");
-                          console.log(currentStore["LeaveTime"]);
-                          console.log(currentStore["ExpectedTimeBegin"]);
                           subscribedStores.push(currentStore);
                         });
                     } else {
@@ -328,7 +325,6 @@ export default {
     getSeverityState: function(store) {
       var waitingTime = parseInt(store.WaitingTime);
       var travelTime = parseInt(store.TravelTime);
-      console.log(travelTime);
 
       // severity is beginning of expected time window - time to travel
       var waitWindowStart = waitingTime - 7.5;
