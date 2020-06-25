@@ -368,11 +368,10 @@ export default {
                                 location: localStore.name,
                                 position: localStore.geometry.location,
                                 id: localStore.place_id,
-                                // Stores the numerical value of travel time by splitting and parsing the string returned by Maps API
-                                travelTime: parseInt(
-                                  response.data.rows[0].elements[0].duration.text.split(
-                                    " "
-                                  )
+                                // Stores the time duration field of the API response - divide by 60 as the value is in seconds
+                                travelTime: Math.floor(
+                                  response.data.rows[0].elements[0].duration
+                                    .value / 60
                                 ),
                                 waitingTime: waitingTime,
                                 img: imgVal,
