@@ -26,7 +26,8 @@ const rl = readline.createInterface({
 const USER_ID = "2L2GVG7rIPZojeSEixUWDdsu2Eh1";
 
 rl.question("Please enter your location ", function(location) {
-  let shops = ["liquor", "food", "grocery", "pizza", "restaurant", "medicine"];
+  // let shops = ["liquor", "food", "grocery", "pizza", "restaurant", "medicine"];
+  let shops = ["grocery"]
   // Iterates over various types of common shops
   for (var i = 0; i < shops.length; i++) {
     // Requests Places Search API for relevant stores near input location
@@ -61,7 +62,7 @@ rl.question("Please enter your location ", function(location) {
                 CurrentToken: Math.floor(Math.random() * 50) + 1,
                 StoreName: storeDetails.name,
                 // Initializes queue length to 0 as no users are present initially
-                QueueLength: 0,
+                QueueLength:  Math.floor(Math.random() * 5) + 1,
               };
 
               // Checks for presense of attributes in Places Details API results and assigns values accordingly
@@ -79,17 +80,19 @@ rl.question("Please enter your location ", function(location) {
               )
                 values.OperatsionalHours = storeDetails.opening_hours.periods;
               // Adds all store details to DB with place ID
-              firebase
-                .database()
-                .ref("Store/" + place_id)
-                .set(values);
-              // Assigns USER_ID the ownership of the store in DB
-              firebase
-                .database()
-                .ref("User/" + USER_ID + "/OwnedStoreID/" + place_id)
-                .set({
-                  StoreID: place_id,
-                });
+              if (place_id != "ChIJz8ZuSX_mDDkRl4OAhy-CR2U") {
+                firebase
+                  .database()
+                  .ref("Store/" + place_id)
+                  .set(values);
+                // Assigns USER_ID the ownership of the store in DB
+                firebase
+                  .database()
+                  .ref("User/" + USER_ID + "/OwnedStoreID/" + place_id)
+                  .set({
+                    StoreID: place_id,
+                  });
+              }
             })
             .catch((error) => console.log(error));
         }

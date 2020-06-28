@@ -39,9 +39,8 @@
                 <div class="marker">
                   <div
                     class="marker-top"
-                    @click="navigateToQueuePage(m.id)"
-                    @mouseover="setActive(index)"
-                    @mouseout="setInactive"
+                    :class="{ 'marker-top-active': activeIndex === index }"
+                    @click="setActive(index)"
                   >
                     <center>
                       <b
@@ -174,11 +173,11 @@
   background-color: #3e628c;
 }
 
-/* Change marker colour on hover and size/border transitions */
-.marker-top:hover {
-  background: #e75480;
-  min-height: 25px;
-  min-width: 30px;
+/* Change marker colour on click and size/border transitions */
+.marker-top-active {
+  background-color: #e75480 !important;
+  min-height: 5px;
+  min-width: 10px;
   border-radius: 8px;
   box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0.1);
   transition: transform 330ms ease-in-out;
