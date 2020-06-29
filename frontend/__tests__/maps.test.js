@@ -1,11 +1,13 @@
 import { mount } from '@vue/test-utils'
-import Queue from '../src/views/Queue.vue'
-// import { maps_api } from '../src/mapsApi'
+import Search from '../src/views/Search.vue'
 
-describe('Queue', () => {
+describe('Search.vue', () => {
+  test("testcase#1", () => {
+    expect(true).toEqual(true);
+  });
     // Now mount the component and you have the wrapper
-    const wrapper = mount(Search)
-    console.log(wrapper)
+    // const wrapper = mount(Search)
+    // console.log(wrapper)
     // // checks the raw component data 
     // it('sets the correct default data', () => {
     //     expect(typeof Search.data).toBe('function')
