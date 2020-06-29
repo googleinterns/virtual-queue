@@ -1,9 +1,8 @@
 {
-    "presets": [["env", { "modules": false }]],
-    "env": {
-      "test": {
-        "presets": [["env", { "targets": { "node": "current" } }]]
-      }
-    },
-    "plugins":["transform-es2015-modules-commonjs"]
-  }
+  "presets": [
+    ["env", {
+      "targets:": { "node": "current" } // change this to your node version
+    }]
+  ],
+  "plugins":["transform-es2015-modules-commonjs"]
+}
