@@ -313,8 +313,11 @@ export default {
       // Previous markers are cleared for the new query
       this.markers = [];
 
-      for (var index = 0; index < nearWords.length; index++) {
-        if (this.searchItem.includes(nearWords[index])) searchWithNear = true;
+      var words = this.searchItem.match(/\b(\w+)\b/g); // Regex to get the words of a string separated by non alphanumeric characters
+      for(var index = 0; index < nearWords.length; index++)
+      {
+        if(words.includes(nearWords[index]))
+          searchWithNear = true;
       }
       // Obtains list of stores & their details based on user query
       search_api
