@@ -12,7 +12,12 @@ import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { dom } from "@fortawesome/fontawesome-svg-core";
 import VueClipboard from "vue-clipboard2";
+import VueLazyload from "vue-lazyload";
 
+Vue.use(VueLazyload, {
+  error: "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png",
+  loading: "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png",
+});
 dom.watch();
 
 library.add(fas);

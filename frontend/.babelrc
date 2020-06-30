@@ -1,8 +1,1 @@
-{
-  "presets": [
-    ["env", {
-      "targets:": { "node": "current" } // change this to your node version
-    }]
-  ],
-  "plugins":["transform-es2015-modules-commonjs"]
-}
+{ "presets": ["@babel/preset-env"] }
