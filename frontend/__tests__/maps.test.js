@@ -1,9 +1,10 @@
-import { mount } from '@vue/test-utils'
+import { searchMount } from '@vue/test-utils'
 import Search from '../src/views/Search.vue'
 
 describe('Search.vue', () => {
   test("testcase#1", () => {
-    expect(true).toEqual(true);
+    const wrapper = searchMount(Search);
+    expect(wrapper.isVueInstance()).toBeTruthy();
   });
     // Now mount the component and you have the wrapper
     // const wrapper = mount(Search)

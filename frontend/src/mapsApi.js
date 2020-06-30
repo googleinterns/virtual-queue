@@ -21,8 +21,7 @@ export const zoomToRadiusDict = {
 
 export const maps_api = {
   // Queries Maps Distance Matrix API for the time taken to travel from the user's location to the store
-  calculateTravelTime: function(placeId, center) {
-    
+  getTravelTime: function(placeId, center) {
     // Parameters in the format required for Maps API
     let distanceParams = {
       origins: center.lat + "," + center.lng,
@@ -58,7 +57,22 @@ export const maps_api = {
       });
   },
 
-  getLocationDisabledError: function(){
-    return "Kindly enable your location for the best experience of our app"
-  }
+  getLocationDisabledError: function() {
+    return "Kindly enable your location for the best experience of our app";
+  },
+
+  // Obtains the image associated with a store (response of the Places Search API)
+  getImageUrl: function(store) {
+    let imgVal = "https://image.shutterstock.com/image-vector/dots-letter-c-logo-design-260nw-551769190.jpg";
+    // Checks if location has an associated photo and assigns it accordingly. If not, uses default image.
+    if (store.photos)
+      imgVal = 
+        // Image is obtained from the Places Photos API
+        process.env.VUE_APP_PHOTO_URL +
+        store.photos[0].photo_reference +
+        "&key=" +
+        process.env.VUE_APP_MAPS_API_KEY +
+        "&maxwidth=90";
+    return imgVal;
+  },
 };
