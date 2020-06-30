@@ -139,6 +139,7 @@ import { waiting_time } from "../waitingtime.js";
 import { maps_api } from "../mapsApi";
 import { Chart } from "highcharts-vue";
 import moment from "moment";
+import { graph_call } from "../graph.js";
 
 export default {
   name: "Queue",
@@ -434,94 +435,6 @@ export default {
         }
       }
     },
-    // Function to create Power-curve
-    makeGraph: function(snap) {
-      var lineGraph = [];
-      var firstToken = 0,
-        lastToken = 0;
-      var firstTokenFlag = 0;
-      var currentUserToken = null;
-      snap.forEach(function(child) {
-        if (firstTokenFlag == 0) {
-          // firstTokenflag = 0 detects we are on first token
-          firstToken = child.child(database_call.getTokenIdField()).val();
-          firstTokenFlag = 1;
-        }
-        if (
-          database_call.getUserId() ==
-          child.child(database_call.getUserIdField()).val()
-        ) {
-          currentUserToken = child.child(database_call.getTokenIdField()).val();
-        }
-        lastToken = Math.max(
-          lastToken,
-          child.child(database_call.getTokenIdField()).val()
-        );
-      });
-
-      var range = 20;
-      // minMostToken is the token from where the graph starts
-      var minMostToken = firstToken - ((firstToken - 1) % range);
-
-      // initialising ranges in lineGraph array
-      for (
-        var lowerBound = minMostToken;
-        lowerBound <= lastToken;
-        lowerBound += range
-      ) {
-        var pair = [];
-        var upperBound = lowerBound + range - 1;
-        var key = lowerBound.toString() + "-" + upperBound.toString();
-        pair.push(key);
-        // pushing 100 to replicate it with percentage
-        pair.push(100);
-        lineGraph.push(pair);
-      }
-
-      var factor = (minMostToken - 1) / range;
-
-      // decrementing the people in a range who are not yet resolved
-      snap.forEach(function(child) {
-        var tokenId = child.child(database_call.getTokenIdField()).val();
-        var index = Math.floor((tokenId - 1) / range) - factor;
-        // converting number of people into percentage of people resolved
-        lineGraph[index][1] -= 100 / range;
-      });
-
-      var lineGraphX = [],
-        lineGraphY = [];
-
-      // putting X and Y axis values in lineGraphX and lineGraphY arrays respectively except the last range
-      for (var itr = 0; itr < lineGraph.length - 1; itr++) {
-        lineGraphX.push(lineGraph[itr][0]);
-        lineGraphY.push(lineGraph[itr][1]);
-      }
-
-      // customizing Chart features
-      this.chartOptions.series[0].data = lineGraphY;
-      this.chartOptions.xAxis.categories = lineGraphX;
-
-      // plotline will only be shown when user is logged in and entered in a queue and his token does not belong to last range
-      if (
-        currentUserToken != null &&
-        currentUserToken <= Math.floor((lastToken - 1) / range) * range
-      ) {
-        var index = Math.floor(currentUserToken / range) - factor;
-        this.chartOptions.xAxis.plotLines[0].value = index;
-      } else {
-        this.chartOptions.xAxis.plotLines[0].value = null;
-      }
-
-      // subtitle will be shown if firstToken is greater than 1
-      if (firstToken > 1) {
-        this.chartOptions.subtitle.text =
-          "(People before token " +
-          firstToken.toString() +
-          " have been resolved)";
-      } else {
-        this.chartOptions.subtitle.text = null;
-      }
-    },
   },
   created() {
     this.storeInit();
@@ -544,7 +457,9 @@ export default {
     // Listening to changes in the queue
     database_call.setQueueIncListener(this.storeId, this.queueInc);
     database_call.setQueueDecListener(this.storeId, this.queueDec);
-    database_call.setPowerCurveListener(this.storeId, this.makeGraph);
+    database_call.setPowerCurveListener(this.storeId, (snap) => {
+      graph_call.renderLineGraph(snap, this.uid, this.chartOptions);
+    });
   },
 };
 </script>
