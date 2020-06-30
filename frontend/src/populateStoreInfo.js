@@ -26,8 +26,7 @@ const rl = readline.createInterface({
 const USER_ID = "2L2GVG7rIPZojeSEixUWDdsu2Eh1";
 
 rl.question("Please enter your location ", function(location) {
-  // let shops = ["liquor", "food", "grocery", "pizza", "restaurant", "medicine"];
-  let shops = ["grocery"]
+  let shops = ["liquor", "food", "grocery", "pizza", "restaurant", "medicine"];
   // Iterates over various types of common shops
   for (var i = 0; i < shops.length; i++) {
     // Requests Places Search API for relevant stores near input location
@@ -62,7 +61,7 @@ rl.question("Please enter your location ", function(location) {
                 CurrentToken: Math.floor(Math.random() * 50) + 1,
                 StoreName: storeDetails.name,
                 // Initializes queue length to 0 as no users are present initially
-                QueueLength:  Math.floor(Math.random() * 5) + 1,
+                QueueLength: 0,
               };
 
               // Checks for presense of attributes in Places Details API results and assigns values accordingly
