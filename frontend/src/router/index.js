@@ -6,7 +6,8 @@ import Login from "../views/Login.vue";
 import SignUp from "../views/SignUp.vue";
 import Search from "../views/Search.vue";
 import Queue from "../views/Queue.vue";
-import Error404 from "../views/404.vue"
+import Error404 from "../views/404.vue";
+import Demo from "../Demo.vue";
 
 Vue.use(VueRouter);
 
@@ -45,8 +46,9 @@ const routes = [
     component: Error404,
   },
   {
-    path: "/",
-    component: Search,
+    path: "/populategraph",
+    name: "Populate Graph",
+    component: Demo,
   },
   {
     path: "*",
