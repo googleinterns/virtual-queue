@@ -1,11 +1,28 @@
 import { searchMount } from '@vue/test-utils'
-import Search from '../src/views/Search.vue'
+import search from '../src/search.js'
 
-describe('Search.vue', () => {
-  test("testcase#1", () => {
-    const wrapper = searchMount(Search);
-    expect(wrapper.isVueInstance()).toBeTruthy();
+describe('#sortStoresArray', () => {
+  test("Passing test for already sorted array with same integer values of wait & travel time", () => {
+    const input = [
+      { waitTime: 8, travelTime: 8 },
+      { waitTime: 16, travelTime: 16 },
+      { waitTime: 24, travelTime: 24 },
+      { waitTime: 42, travelTime: 42 },
+    ]
+    expect(search.sortStoresArray(input)).toEqual(input);
   });
+
+  test("Failing test for unsorted array with same integer values of wait & travel time", () => {
+    const input = [
+      { waitTime: 16, travelTime: 16 },
+      { waitTime: 24, travelTime: 24 },
+      { waitTime: 42, travelTime: 42 },
+      { waitTime: 8, travelTime: 8 },
+    ]
+    expect(search.sortStoresArray(input)).not.toBe(input);
+  });
+
+
     // Now mount the component and you have the wrapper
     // const wrapper = mount(Search)
     // console.log(wrapper)
