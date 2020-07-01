@@ -30,7 +30,6 @@ export const search_api = {
                 }
               })
           );
-          //}
         }
         // Wait for all promises to return and then sort the queue
         return Promise.all(promises).then(() => {
