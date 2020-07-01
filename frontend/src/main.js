@@ -1,7 +1,6 @@
 import Vue from "vue";
 import firebase from "firebase";
 import App from "./App.vue";
-import Demo from "./Demo.vue";
 import router from "./router";
 import * as VueGoogleMaps from "vue2-google-maps";
 import "./../node_modules/bulma/css/bulma.css";
@@ -50,13 +49,6 @@ firebase.auth().onAuthStateChanged(() => {
   }
 });
 
-let demo = "";
-if (!demo) {
-  demo = new Vue({
-    router,
-    render: (h) => h(Demo),
-  }).$mount("#demo");
-}
 // Initializing Vuejs maps library
 Vue.use(VueGoogleMaps, {
   load: {
