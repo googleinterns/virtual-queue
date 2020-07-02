@@ -304,12 +304,6 @@ export default {
       if (this.searchItem == null) return;
 
       let center = this.markerCenter;
-<<<<<<< HEAD
-=======
-      var queues = [];
->>>>>>> 73a7f65... Review changes
-      var nearWords = ["in", "near", "nearby"];
-      var searchWithNear = false;
       // Dragged variable set to false as new query is made from the location
       this.dragged = false;
       // Status set to loading (1) when the query is made
@@ -317,10 +311,8 @@ export default {
       // Previous markers are cleared for the new query
       this.markers = [];
 
-      var words = this.searchItem.match(/\b(\w+)\b/g); // Regex to get the words of a string separated by non alphanumeric characters
-      for (var index = 0; index < nearWords.length; index++) {
-        if (words.includes(nearWords[index])) searchWithNear = true;
-      }
+      // Checks if search query includes keywords such as near
+      var isSearchWithNear = search_api.checkNearbyWords(this.searchItem);
       // Obtains list of stores & their details based on user query
       search_api
         .getStoresArray(this.markerCenter, this.radius, this.searchItem)
@@ -332,7 +324,7 @@ export default {
           } else {
             // If some stores are returned, status is reset to non-loading (status code 0)
             this.status = 0;
-            if (searchWithNear) this.autoCenter;
+            if (isSearchWithNear) this.autoCenter;
           }
         });
     },

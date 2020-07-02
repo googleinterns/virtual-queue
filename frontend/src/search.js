@@ -94,4 +94,14 @@ export const search_api = {
     };
     return axios.get(process.env.VUE_APP_PLACES_URL, { params: placesParams });
   },
+
+  checkNearbyWords: function(query) {
+    var nearWords = ["in", "near", "nearby"];
+    var isSearchWithNear = false;
+    var queryWords = query.match(/\b(\w+)\b/g); // Regex to get the words of a string separated by non alphanumeric characters
+    for (var index = 0; index < nearWords.length; index++) {
+      if (queryWords.includes(nearWords[index])) isSearchWithNear = true;
+    }
+    return isSearchWithNear;
+  },
 };
