@@ -107,7 +107,7 @@
               <div class="media-left">
                 <figure class="image">
                   <img
-                    :src="`${mark.img}`"
+                    v-lazy="`${mark.img}`"
                     alt="Placeholder image"
                     class="shop-image"
                   />
@@ -200,13 +200,13 @@
 
 <script>
 import Vue from "vue";
-import firebase from "firebase";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import GmapCustomMarker from "vue2-gmap-custom-marker";
 import { waiting_time } from "../waitingtime";
 import { maps_api } from "../mapsApi";
 import { zoomToRadiusDict } from "../mapsApi";
+import { search_api } from "../search";
 Vue.use(VueAxios, axios);
 
 export default {
@@ -237,6 +237,7 @@ export default {
   },
 
   mounted() {
+    // Obtains the current user location if location settings are enabled, else locationOn flag is set to false
     maps_api.getPosition().then((location) => {
       if (location) {
         this.center = location;
@@ -300,9 +301,9 @@ export default {
     },
 
     search: function() {
-      let center = this.markerCenter;
-      var queues = [];
-      let promises = [];
+      // Does not make a request if query is empty
+      if (this.searchItem == null) return;
+
       // Dragged variable set to false as new query is made from the location
       this.dragged = false;
       // Status set to loading (1) when the query is made
@@ -310,96 +311,18 @@ export default {
       // Previous markers are cleared for the new query
       this.markers = [];
 
-      if (this.searchItem == null)
-        // Does not make a request if query is empty
-        return;
-
-      // Parameters in the required format for Text Search API
-      let placesParams = {
-        location: this.markerCenter.lat + "," + this.markerCenter.lng,
-        radius: this.radius,
-        query: this.searchItem,
-        key: process.env.VUE_APP_MAPS_API_KEY,
-      };
-
-      // Requests the Maps Places API (Text Search API) for list of nearby places
-      axios
-        .get(process.env.VUE_APP_PLACES_URL, { params: placesParams })
-        .then((response) => {
-          // Iterate over each store response from Places API
-          for (var i = 0; i < response.data.results.length; i++) {
-            var store = response.data.results[i];
-            let dbRef = firebase.database().ref();
-            var locref = dbRef.child("Store").child(store.place_id);
-            // check if a store with obtained location ID exists in firebase DB
-            if (locref) {
-              let localStore = store;
-              // Push each promise to the array
-              promises.push(
-                dbRef
-                  .child("Store")
-                  .child(store.place_id)
-                  .child("IsEnabled")
-                  .once("value")
-                  .then(function(snap) {
-                    // Checks if the queue is enabled at the store (value of IsEnabled must be true)
-                    if (snap.val()) {
-                      // Returns travel time between user and store location
-                      return maps_api
-                        .calculateTravelTime(localStore.place_id, center)
-                        .then((response) => {
-                          let imgVal =
-                            "https://maps.gstatic.com/tactile/pane/default_geocode-2x.png";
-                          // Checks if location has an associated photo and assigns it accordingly. If not, uses default image.
-                          if (localStore.photos)
-                            imgVal =
-                              process.env.VUE_APP_PHOTO_URL +
-                              localStore.photos[0].photo_reference +
-                              "&key=" +
-                              process.env.VUE_APP_MAPS_API_KEY +
-                              "&maxwidth=90";
-
-                          // Obtains waiting time based on queue length
-                          return waiting_time
-                            .getWaitingTimeAsync(localStore.place_id)
-                            .then((waitingTime) => {
-                              queues.push({
-                                location: localStore.name,
-                                position: localStore.geometry.location,
-                                // Stores the unique place ID of the shop
-                                id: localStore.place_id,
-                                // Stores the time duration field of the API response - divide by 60 as the value is in seconds
-                                travelTime: Math.floor(
-                                  response.data.rows[0].elements[0].duration
-                                    .value / 60
-                                ),
-                                waitingTime: waitingTime,
-                                img: imgVal,
-                              });
-                            });
-                        });
-                    }
-                  })
-              );
-            }
+      // Obtains list of stores & their details based on user query
+      search_api
+        .getStoresArray(this.markerCenter, this.radius, this.searchItem)
+        .then((stores) => {
+          this.markers = stores;
+          // If no stores are returned, status is set to no shops found (status code -1)
+          if (stores.length == 0) {
+            this.status = -1;
+          } else {
+            // If some stores are returned, status is reset to non-loading (status code 0)
+            this.status = 0;
           }
-
-          // Wait for all promises to return and then sort the queue
-          Promise.all(promises).then(() => {
-            // Sets the status to no shops found (status -1)
-            if (queues.length == 0) this.status = -1;
-            // Else, resets the status to non-loading (status 0)
-            else this.status = 0;
-
-            queues.sort(function(a, b) {
-              // User serve time is calculated as the maximum value between travel / waiting time as that is the time estimate for when the user's turn will come
-              var aTime = Math.max(a.travelTime, a.waitingTime);
-              var bTime = Math.max(b.travelTime, b.waitingTime);
-              // Sort in ascending order of time
-              return aTime - bTime;
-            });
-            this.markers = queues;
-          });
         });
     },
   },
