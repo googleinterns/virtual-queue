@@ -43,10 +43,10 @@ export const search_api = {
   sortStoresArray: function(queues) {
     return queues.sort(function(a, b) {
       // User serve time is calculated as the maximum value between travel / waiting time as that is the time estimate for when the user's turn will come
-      var aTime = Math.max(a.travelTime, a.waitingTime);
-      var bTime = Math.max(b.travelTime, b.waitingTime);
+      var aServeTime = Math.max(a.travelTime, a.waitingTime);
+      var bServeTime = Math.max(b.travelTime, b.waitingTime);
       // Sort in ascending order of time
-      return aTime - bTime;
+      return aServeTime - bServeTime;
     });
   },
 
