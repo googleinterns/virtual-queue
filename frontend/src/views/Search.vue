@@ -302,8 +302,6 @@ export default {
     search: function() {
       // Does not make a request if query is empty
       if (this.searchItem == null) return;
-
-      let center = this.markerCenter;
       // Dragged variable set to false as new query is made from the location
       this.dragged = false;
       // Status set to loading (1) when the query is made
