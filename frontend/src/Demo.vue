@@ -31,8 +31,9 @@ export default {
       storeId: "",
       password: "password",
       userIdArray: [],
-      random: [], //random array determines the sequence of entry and exit of userIds
+      //random array determines the sequence of entry and exit of userIds
       //[index of userId, 1/0] :  1 for entry, 0 for exit
+      random: [],
       // [Token range, Number of people, exit(0)/entry(1)] : Token range: 1=[1-20], 2=[21-40] likewise
       algo: [
         [1, 20, 1],
@@ -71,10 +72,9 @@ export default {
           .signInWithEmailAndPassword(email, password)
           .then(
             () => {
-              console.log("hi");
               var userid = firebase.auth().currentUser.uid;
               userIdArray.push(userid);
-              console.log(userid);
+              console.log("Logged in" + userid);
               return;
             },
             () => {
@@ -82,10 +82,9 @@ export default {
                 .auth()
                 .createUserWithEmailAndPassword(email, password)
                 .then(() => {
-                  console.log("hi");
                   var userid = firebase.auth().currentUser.uid;
                   userIdArray.push(userid);
-                  console.log(userid);
+                  console.log("Signed up" + userid);
                 });
             }
           );
@@ -148,8 +147,7 @@ export default {
 
       // Enroll a user with userId in queue of storeId
       function addUserToQueue(userId, storeId) {
-        console.log("enter");
-        console.log(userId);
+        console.log("enter" + userId);
         return new Promise(function(resolve) {
           setTimeout(resolve, 100);
         }).then(() => {
@@ -159,8 +157,7 @@ export default {
 
       // Remove a user with userId from queue of storeId
       function removeUserFromQueue(userId, storeId) {
-        console.log("exit");
-        console.log(userId);
+        console.log("exit" + userId);
         return new Promise(function(resolve) {
           setTimeout(resolve, 100);
         }).then(() => {
