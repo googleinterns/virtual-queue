@@ -16,47 +16,331 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // testing addToQueue() method of database.js 
-describe('Testing addToQueue()', function() {
+describe('database', function() {
 
-  // Initializing database
-  before(function(done){
-    firebase.database().ref().set({
-      "Store": {
-        "1": {
-          "CurrentToken": 1,
-          "StoreName": "test",
-        }
-      }
-    }, function(){
-      done();
-    })
-  });
+  const VALID_STORE_ID = "1";
+  const VALID_USER_ID = "1";
+  const SECONDARY_USER_ID = "2";
+  const STORE_NAME = "test";
 
-  // Clear database on completion of all the tests
+  //Clearing this test results from database
   after(function(){
     return firebase.database().ref().remove();
   });
 
-  describe('getTokenIdField', function(){
-    it('should return database token', function () {
-      assert.equal(database.database_call.getTokenIdField(), "Token")
-    })
-  })
-  describe('read DB', function(){
-    it('reading db', function () {
-      return firebase.database().ref().once("value").then((snap)=>{
-        console.log(snap.val());
-        assert.equal(snap.val().Store["1"].StoreName, "test");
+  /** 
+   * Test Conditions: storeId-exists, userIsEmpty, queueEmpty, CurrentToken-exists(=0), QueueLength-exists(=0)
+   * Expected: QueueLength incremented,
+   *           CurrentToken incremented,
+   *           key: {UserID: userId, Token: token} added to UsersInQueue
+   *           key: {StoreID: storeId} added to SubscribedStoreID
+   */
+  describe('addToQueue_storeIdExists_userIsEmpty_queueEmpty_currentTokenExists_queueLengthExists', function(){
+
+    // Adding test conditions to database
+    beforeEach(function(done){
+      firebase.database().ref().set({
+        "Store": {
+          "1": {
+            "StoreName": STORE_NAME,
+            "CurrentToken": 0,
+            "QueueLength": 0,
+          }
+        },
+      }, function(){
+        done();
+      })
+    });
+
+    it('added to queue', function (done) {
+      database.database_call.addToQueue(VALID_STORE_ID, VALID_USER_ID, ()=>{
+        firebase.database().ref().once("value", function(snap){
+          var QueueLength = snap.val().Store[VALID_STORE_ID].QueueLength;
+          var CurrentToken = snap.val().Store[VALID_STORE_ID].CurrentToken;
+
+          // Expected: QueueLength incremented
+          assert.equal(QueueLength, 1);
+
+          // Expected: CurrentToken incremented
+          assert.equal(CurrentToken, 1);
+
+          var UsersInQueue = snap.val().Store[VALID_STORE_ID].UsersInQueue;
+          // Expected: Only one user in queue
+          var numUsers = Object.keys(UsersInQueue).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {UserID: userId, Token: token} added to UsersInQueue
+          var userKey = Object.keys(UsersInQueue)[0];
+          assert.equal(UsersInQueue[userKey].UserID, VALID_USER_ID);
+
+          var SubscribedStoreID = snap.val().User[VALID_USER_ID].SubscribedStoreID;
+          // Expected: Only one store in SubscribedStoreID
+          var numUsers = Object.keys(SubscribedStoreID).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {StoreID: storeId} added to SubscribedStoreID
+          var storeKey = Object.keys(SubscribedStoreID)[0];
+          assert.equal(SubscribedStoreID[storeKey].StoreID, VALID_STORE_ID);
+
+          done();
+        });
       });
-    })
+    });
   })
-  describe('addToQueue', function(){
-    it('add to queue', function (done) {
-      database.database_call.addToQueue("1", "1", ()=>{
-        assert.equal("true", "true");
+
+  /** 
+   * Test Conditions: storeId-exists, userIsEmpty, queueNotEmpty, CurrentToken-exists(=1), QueueLength-exists(=1)
+   * Expected: QueueLength incremented,
+   *           CurrentToken incremented,
+   *           key: {UserID: userId, Token: token} added to UsersInQueue
+   *           key: {StoreID: storeId} added to SubscribedStoreID
+   */
+  describe('addToQueue_storeIdExists_userIsEmpty_queueNotEmpty_currentTokenExists_queueLengthExists', function(){
+
+    // Adding test conditions to database
+    beforeEach(function(done){
+      firebase.database().ref().update({
+        "Store": null,
+        "User": null,
+      }, function(){
+        firebase.database().ref().set({
+          "Store": {
+            "1": {
+              "StoreName": STORE_NAME,
+              "CurrentToken": 1,
+              "QueueLength": 1,
+              "UsersInQueue": {
+                "-1": {
+                  "UserID": SECONDARY_USER_ID,
+                  "Token": 1,
+                }
+              }
+            }
+          },
+          "User": {
+            "2": {
+              "SubscribedStoreID": {
+                "-1": {
+                  "StoreID": "1"
+                }
+              }
+            }
+          }
+        }, function(){
+          done();
+        });
+      });
+    });
+
+    it('added to queue', function (done) {
+      database.database_call.addToQueue(VALID_STORE_ID, VALID_USER_ID, ()=>{
+        firebase.database().ref().once("value", function(snap){
+          var QueueLength = snap.val().Store[VALID_STORE_ID].QueueLength;
+          var CurrentToken = snap.val().Store[VALID_STORE_ID].CurrentToken;
+
+          // Expected: QueueLength incremented to 2 
+          assert.equal(QueueLength, 2);
+
+          // Expected: CurrentToken incremented to 2
+          assert.equal(CurrentToken, 2);
+
+          var UsersInQueue = snap.val().Store[VALID_STORE_ID].UsersInQueue;
+          // Expected: Two users in queue
+          var numUsers = Object.keys(UsersInQueue).length;
+          assert.equal(numUsers, 2);
+
+          // Expected: key: {UserID: userId, Token: token} added to UsersInQueue
+          var userKey = Object.keys(UsersInQueue)[1];
+          assert.equal(UsersInQueue[userKey].UserID, VALID_USER_ID);
+
+          var SubscribedStoreID = snap.val().User[VALID_USER_ID].SubscribedStoreID;
+          // Expected: Only one store in SubscribedStoreID
+          var numUsers = Object.keys(SubscribedStoreID).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {StoreID: storeId} added to SubscribedStoreID
+          var storeKey = Object.keys(SubscribedStoreID)[0];
+          assert.equal(SubscribedStoreID[storeKey].StoreID, VALID_STORE_ID);
+
+          done();
+        });
+      });
+    });
+  })
+
+  /** 
+   * Test Conditions: storeId-exists, userIsEmpty, queueEmpty, CurrentToken does notexist, QueueLength-exists(=1)
+   * Expected: QueueLength incremented,
+   *           CurrentToken is 1,
+   *           key: {UserID: userId, Token: token} added to UsersInQueue
+   *           key: {StoreID: storeId} added to SubscribedStoreID
+   */
+  describe('addToQueue_storeIdExists_userIsEmpty_queueIsEmpty_currentTokenDoesNotExist_queueLengthExists', function(){
+
+    // Adding test conditions to database
+    beforeEach(function(done){
+      firebase.database().ref().set({
+        "Store": {
+          "1": {
+            "StoreName": STORE_NAME,
+            "QueueLength": 0,
+          }
+        },
+      }, function(){
         done();
       });
-      //assert.equal(database.database_call.isUserInQueue(), "false")
-    })
-  })
-})
+    });
+
+    it('added to queue', function (done) {
+      database.database_call.addToQueue(VALID_STORE_ID, VALID_USER_ID, ()=>{
+        firebase.database().ref().once("value", function(snap){
+          var QueueLength = snap.val().Store[VALID_STORE_ID].QueueLength;
+          var CurrentToken = snap.val().Store[VALID_STORE_ID].CurrentToken;
+
+          // Expected: QueueLength incremented to 1 
+          assert.equal(QueueLength, 1);
+
+          // Expected: CurrentToken created and set to 1
+          assert.equal(CurrentToken, 1);
+
+          var UsersInQueue = snap.val().Store[VALID_STORE_ID].UsersInQueue;
+          // Expected: Two users in queue
+          var numUsers = Object.keys(UsersInQueue).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {UserID: userId, Token: token} added to UsersInQueue
+          var userKey = Object.keys(UsersInQueue)[0];
+          assert.equal(UsersInQueue[userKey].UserID, VALID_USER_ID);
+
+          var SubscribedStoreID = snap.val().User[VALID_USER_ID].SubscribedStoreID;
+          // Expected: Only one store in SubscribedStoreID
+          var numUsers = Object.keys(SubscribedStoreID).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {StoreID: storeId} added to SubscribedStoreID
+          var storeKey = Object.keys(SubscribedStoreID)[0];
+          assert.equal(SubscribedStoreID[storeKey].StoreID, VALID_STORE_ID);
+
+          done();
+        });
+      });
+    });
+  });
+
+  /** 
+   * Test Conditions: storeId-exists, userIsEmpty, queueEmpty, CurrentToken-exists(=0), QueueLength does not exist
+   * Expected: QueueLength is 1,
+   *           CurrentToken incremented,
+   *           key: {UserID: userId, Token: token} added to UsersInQueue
+   *           key: {StoreID: storeId} added to SubscribedStoreID
+   */
+  describe('addToQueue_storeIdExists_userIsEmpty_queueIsEmpty_currentTokenExists_queueLengthDoesNotExist', function(){
+
+    // Adding test conditions to database
+    beforeEach(function(done){
+      firebase.database().ref().set({
+        "Store": {
+          "1": {
+            "StoreName": STORE_NAME,
+            "CurrentToken": 0,
+          }
+        },
+      }, function(){
+        done();
+      });
+    });
+
+    it('added to queue', function (done) {
+      database.database_call.addToQueue(VALID_STORE_ID, VALID_USER_ID, ()=>{
+        firebase.database().ref().once("value", function(snap){
+          var QueueLength = snap.val().Store[VALID_STORE_ID].QueueLength;
+          var CurrentToken = snap.val().Store[VALID_STORE_ID].CurrentToken;
+
+          // Expected: QueueLength created and set to 1
+          assert.equal(QueueLength, 1);
+
+          // Expected: CurrentToken incremented to 1
+          assert.equal(CurrentToken, 1);
+
+          var UsersInQueue = snap.val().Store[VALID_STORE_ID].UsersInQueue;
+          // Expected: Two users in queue
+          var numUsers = Object.keys(UsersInQueue).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {UserID: userId, Token: token} added to UsersInQueue
+          var userKey = Object.keys(UsersInQueue)[0];
+          assert.equal(UsersInQueue[userKey].UserID, VALID_USER_ID);
+
+          var SubscribedStoreID = snap.val().User[VALID_USER_ID].SubscribedStoreID;
+          // Expected: Only one store in SubscribedStoreID
+          var numUsers = Object.keys(SubscribedStoreID).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {StoreID: storeId} added to SubscribedStoreID
+          var storeKey = Object.keys(SubscribedStoreID)[0];
+          assert.equal(SubscribedStoreID[storeKey].StoreID, VALID_STORE_ID);
+
+          done();
+        });
+      });
+    });
+  });
+
+  /** 
+   * Test Conditions: storeId-exists, userIsEmpty, queueEmpty, CurrentToken does not exist, QueueLength does not exist
+   * Expected: QueueLength is 1,
+   *           CurrentToken incremented,
+   *           key: {UserID: userId, Token: token} added to UsersInQueue
+   *           key: {StoreID: storeId} added to SubscribedStoreID
+   */
+  describe('addToQueue_storeIdExists_userIsEmpty_queueIsEmpty_currentTokenDoesNotExist_queueLengthDoesNotExist', function(){
+
+    // Adding test conditions to database
+    beforeEach(function(done){
+      firebase.database().ref().set({
+        "Store": {
+          "1": {
+            "StoreName": STORE_NAME,
+          }
+        },
+      }, function(){
+        done();
+      });
+    });
+
+    it('added to queue', function (done) {
+      database.database_call.addToQueue(VALID_STORE_ID, VALID_USER_ID, ()=>{
+        firebase.database().ref().once("value", function(snap){
+          var QueueLength = snap.val().Store[VALID_STORE_ID].QueueLength;
+          var CurrentToken = snap.val().Store[VALID_STORE_ID].CurrentToken;
+
+          // Expected: QueueLength created and set to 1
+          assert.equal(QueueLength, 1);
+
+          // Expected: CurrentToken created and set to 1
+          assert.equal(CurrentToken, 1);
+
+          var UsersInQueue = snap.val().Store[VALID_STORE_ID].UsersInQueue;
+          // Expected: Two users in queue
+          var numUsers = Object.keys(UsersInQueue).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {UserID: userId, Token: token} added to UsersInQueue
+          var userKey = Object.keys(UsersInQueue)[0];
+          assert.equal(UsersInQueue[userKey].UserID, VALID_USER_ID);
+
+          var SubscribedStoreID = snap.val().User[VALID_USER_ID].SubscribedStoreID;
+          // Expected: Only one store in SubscribedStoreID
+          var numUsers = Object.keys(SubscribedStoreID).length;
+          assert.equal(numUsers, 1);
+
+          // Expected: key: {StoreID: storeId} added to SubscribedStoreID
+          var storeKey = Object.keys(SubscribedStoreID)[0];
+          assert.equal(SubscribedStoreID[storeKey].StoreID, VALID_STORE_ID);
+
+          done();
+        });
+      });
+    });
+  });
+});
