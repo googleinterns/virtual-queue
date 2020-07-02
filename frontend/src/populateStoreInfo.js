@@ -79,19 +79,17 @@ rl.question("Please enter your location ", function(location) {
               )
                 values.OperatsionalHours = storeDetails.opening_hours.periods;
               // Adds all store details to DB with place ID
-              if (place_id != "ChIJz8ZuSX_mDDkRl4OAhy-CR2U") {
-                firebase
-                  .database()
-                  .ref("Store/" + place_id)
-                  .set(values);
-                // Assigns USER_ID the ownership of the store in DB
-                firebase
-                  .database()
-                  .ref("User/" + USER_ID + "/OwnedStoreID/" + place_id)
-                  .set({
-                    StoreID: place_id,
-                  });
-              }
+              firebase
+                .database()
+                .ref("Store/" + place_id)
+                .set(values);
+              // Assigns USER_ID the ownership of the store in DB
+              firebase
+                .database()
+                .ref("User/" + USER_ID + "/OwnedStoreID/" + place_id)
+                .set({
+                  StoreID: place_id,
+                });
             })
             .catch((error) => console.log(error));
         }

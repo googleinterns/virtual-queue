@@ -322,6 +322,7 @@ export default {
           } else {
             // If some stores are returned, status is reset to non-loading (status code 0)
             this.status = 0;
+            // If query contains keywords such as near, recenter the map based on new markers
             if (isSearchWithNear) this.autoCenter;
           }
         });

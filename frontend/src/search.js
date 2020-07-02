@@ -95,6 +95,7 @@ export const search_api = {
     return axios.get(process.env.VUE_APP_PLACES_URL, { params: placesParams });
   },
 
+  // Checks the presence of keywords such as near and nearby in the query
   checkNearbyWords: function(query) {
     var nearWords = ["in", "near", "nearby"];
     var isSearchWithNear = false;
