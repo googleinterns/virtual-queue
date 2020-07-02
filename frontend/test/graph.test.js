@@ -1,10 +1,5 @@
 var assert = require("assert");
-var firebase = require("firebase");
 var graph = require("./../src/graph");
-
-var firebaseConfig = {};
-
-firebase.initializeApp(firebaseConfig);
 
 describe("Graph", function() {
   describe("getSubtitle_passFirstTokenOtherThanOne_returnSubtitle", function() {
