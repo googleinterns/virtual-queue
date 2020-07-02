@@ -5,9 +5,11 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test": "mocha --require babel-core/register --require babel-polyfill -r esm"
   },
   "dependencies": {
+    "@babel/runtime": "^7.10.4",
     "@fortawesome/fontawesome-svg-core": "^1.2.29",
     "@fortawesome/free-brands-svg-icons": "^5.13.0",
     "@fortawesome/free-solid-svg-icons": "^5.13.1",
@@ -29,13 +31,21 @@
     "vue2-google-maps": "^0.10.7"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.10.4",
+    "@babel/register": "^7.10.4",
     "@vue/cli-plugin-babel": "~4.4.0",
     "@vue/cli-plugin-eslint": "~4.4.0",
     "@vue/cli-plugin-router": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
+    "babel-core": "^6.26.3",
     "babel-eslint": "^10.1.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "esm": "^3.2.25",
+    "mocha": "7.0.0",
     "vue-template-compiler": "^2.6.11"
   }
 }
