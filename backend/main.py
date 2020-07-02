@@ -1,13 +1,13 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request
 import requests
-import re 
+import re
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
 
 
-MAPS_SEARCH_URL=app.config["MAPS_SEARCH_URL"]
-MAPS_DISTANCE_URL=app.config["MAPS_DISTANCE_URL"]
+MAPS_SEARCH_URL = app.config["MAPS_SEARCH_URL"]
+MAPS_DISTANCE_URL = app.config["MAPS_DISTANCE_URL"]
 
 
 @app.route("/textsearch", methods=['GET'])
@@ -19,15 +19,16 @@ def textsearchResults():
     for word in nearWords:
         if word in searchWords:
             parameters = {
-            "query": " ".join(searchWords),
-            "key": parameters["key"]
+                "query": " ".join(searchWords),
+                "key": parameters["key"]
             }
     search_req = requests.get(MAPS_SEARCH_URL, params=parameters)
     print(search_req)
     response = jsonify(search_req.json())
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
-    
+
+
 @app.route("/distancematrix", methods=['GET'])
 def distancematrixResults():
     parameters = request.args
@@ -35,6 +36,7 @@ def distancematrixResults():
     response = jsonify(distance_req.json())
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
-  
-if __name__ ==  "__main__":
+
+
+if __name__ == "__main__":
     app.run(host='localhost', port=5000)
