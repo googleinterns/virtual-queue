@@ -39,9 +39,8 @@
                 <div class="marker">
                   <div
                     class="marker-top"
-                    @click="navigateToQueuePage(m.id)"
-                    @mouseover="setActive(index)"
-                    @mouseout="setInactive"
+                    :class="{ 'marker-top-active': activeIndex === index }"
+                    @click="setActive(index)"
                   >
                     <center>
                       <b
@@ -174,11 +173,11 @@
   background-color: #3e628c;
 }
 
-/* Change marker colour on hover and size/border transitions */
-.marker-top:hover {
-  background: #e75480;
-  min-height: 25px;
-  min-width: 30px;
+/* Change marker colour on click and size/border transitions */
+.marker-top-active {
+  background-color: #e75480 !important;
+  min-height: 5px;
+  min-width: 10px;
   border-radius: 8px;
   box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0.1);
   transition: transform 330ms ease-in-out;
@@ -303,7 +302,6 @@ export default {
     search: function() {
       // Does not make a request if query is empty
       if (this.searchItem == null) return;
-
       // Dragged variable set to false as new query is made from the location
       this.dragged = false;
       // Status set to loading (1) when the query is made
@@ -311,6 +309,8 @@ export default {
       // Previous markers are cleared for the new query
       this.markers = [];
 
+      // Checks if search query includes keywords such as near
+      var isSearchWithNear = search_api.checkNearbyWords(this.searchItem);
       // Obtains list of stores & their details based on user query
       search_api
         .getStoresArray(this.markerCenter, this.radius, this.searchItem)
@@ -322,6 +322,8 @@ export default {
           } else {
             // If some stores are returned, status is reset to non-loading (status code 0)
             this.status = 0;
+            // If query contains keywords such as near, recenter the map based on new markers
+            if (isSearchWithNear) this.autoCenter;
           }
         });
     },
