@@ -304,6 +304,10 @@ export default {
       if (this.searchItem == null) return;
 
       let center = this.markerCenter;
+<<<<<<< HEAD
+=======
+      var queues = [];
+>>>>>>> 73a7f65... Review changes
       var nearWords = ["in", "near", "nearby"];
       var searchWithNear = false;
       // Dragged variable set to false as new query is made from the location
@@ -314,10 +318,8 @@ export default {
       this.markers = [];
 
       var words = this.searchItem.match(/\b(\w+)\b/g); // Regex to get the words of a string separated by non alphanumeric characters
-      for(var index = 0; index < nearWords.length; index++)
-      {
-        if(words.includes(nearWords[index]))
-          searchWithNear = true;
+      for (var index = 0; index < nearWords.length; index++) {
+        if (words.includes(nearWords[index])) searchWithNear = true;
       }
       // Obtains list of stores & their details based on user query
       search_api
